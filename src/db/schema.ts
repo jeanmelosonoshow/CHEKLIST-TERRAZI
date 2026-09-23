@@ -12,7 +12,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 
-export const fieldTypeEnum = pgEnum("checklist_field_type", [
+export const fieldTypeEnum = pgEnum("tipo_campo_lista_verificacao", [
   "short_text",
   "long_text",
   "number",
@@ -21,131 +21,131 @@ export const fieldTypeEnum = pgEnum("checklist_field_type", [
   "single_select",
   "multi_select",
 ]);
-export const checklistStatusEnum = pgEnum("checklist_status", ["draft", "published", "archived"]);
-export const syncStatusEnum = pgEnum("sync_status", ["running", "success", "failed"]);
+export const checklistStatusEnum = pgEnum("status_lista_verificacao", ["draft", "published", "archived"]);
+export const syncStatusEnum = pgEnum("status_sincronizacao", ["running", "success", "failed"]);
 
 export const users = pgTable(
-  "users",
+  "usuarios",
   {
     id: uuid("id").defaultRandom().primaryKey(),
-    branchId: integer("branch_id").notNull(),
-    category: text("category"),
-    employeeId: integer("employee_id").notNull(),
-    employeeName: text("employee_name").notNull(),
+    branchId: text("id_filial").notNull(),
+    category: text("categoria"),
+    employeeId: integer("id_funcionario").notNull(),
+    employeeName: text("nome_funcionario").notNull(),
     login: text("login").notNull(),
-    passwordHash: text("password_hash").notNull(),
-    active: boolean("active").default(true).notNull(),
-    isAdmin: boolean("is_admin").default(false).notNull(),
-    sourceUpdatedAt: timestamp("source_updated_at", { withTimezone: true }),
-    lastSyncedAt: timestamp("last_synced_at", { withTimezone: true }).defaultNow().notNull(),
-    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    passwordHash: text("hash_senha").notNull(),
+    active: boolean("ativo").default(true).notNull(),
+    isAdmin: boolean("administrador").default(false).notNull(),
+    sourceUpdatedAt: timestamp("atualizado_origem_em", { withTimezone: true }),
+    lastSyncedAt: timestamp("ultima_sincronizacao_em", { withTimezone: true }).defaultNow().notNull(),
+    createdAt: timestamp("criado_em", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("atualizado_em", { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [
-    uniqueIndex("users_employee_id_idx").on(table.employeeId),
-    uniqueIndex("users_login_lower_idx").on(table.login),
-    index("users_active_idx").on(table.active),
+    uniqueIndex("usuarios_id_funcionario_idx").on(table.employeeId),
+    uniqueIndex("usuarios_login_idx").on(table.login),
+    index("usuarios_ativo_idx").on(table.active),
   ],
 );
 
 export const sessions = pgTable(
-  "sessions",
+  "sessoes",
   {
     id: uuid("id").defaultRandom().primaryKey(),
-    tokenHash: text("token_hash").notNull(),
-    userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
-    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-    lastSeenAt: timestamp("last_seen_at", { withTimezone: true }).defaultNow().notNull(),
+    tokenHash: text("hash_token").notNull(),
+    userId: uuid("id_usuario").notNull().references(() => users.id, { onDelete: "cascade" }),
+    expiresAt: timestamp("expira_em", { withTimezone: true }).notNull(),
+    createdAt: timestamp("criado_em", { withTimezone: true }).defaultNow().notNull(),
+    lastSeenAt: timestamp("ultimo_acesso_em", { withTimezone: true }).defaultNow().notNull(),
   },
-  (table) => [uniqueIndex("sessions_token_hash_idx").on(table.tokenHash), index("sessions_user_id_idx").on(table.userId)],
+  (table) => [uniqueIndex("sessoes_hash_token_idx").on(table.tokenHash), index("sessoes_id_usuario_idx").on(table.userId)],
 );
 
-export const syncRuns = pgTable("sync_runs", {
+export const syncRuns = pgTable("execucoes_sincronizacao", {
   id: uuid("id").defaultRandom().primaryKey(),
-  source: text("source").notNull(),
+  source: text("origem").notNull(),
   status: syncStatusEnum("status").default("running").notNull(),
-  receivedCount: integer("received_count").default(0).notNull(),
-  processedCount: integer("processed_count").default(0).notNull(),
-  errorMessage: text("error_message"),
-  startedAt: timestamp("started_at", { withTimezone: true }).defaultNow().notNull(),
-  completedAt: timestamp("completed_at", { withTimezone: true }),
+  receivedCount: integer("quantidade_recebida").default(0).notNull(),
+  processedCount: integer("quantidade_processada").default(0).notNull(),
+  errorMessage: text("mensagem_erro"),
+  startedAt: timestamp("iniciado_em", { withTimezone: true }).defaultNow().notNull(),
+  completedAt: timestamp("concluido_em", { withTimezone: true }),
 });
 
-export const syncedSources = pgTable("synced_sources", {
-  key: text("key").primaryKey(),
-  label: text("label").notNull(),
-  description: text("description"),
-  active: boolean("active").default(true).notNull(),
-  schema: jsonb("schema").$type<Record<string, unknown>>().default({}).notNull(),
-  lastSyncedAt: timestamp("last_synced_at", { withTimezone: true }),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+export const syncedSources = pgTable("fontes_sincronizadas", {
+  key: text("chave").primaryKey(),
+  label: text("rotulo").notNull(),
+  description: text("descricao"),
+  active: boolean("ativo").default(true).notNull(),
+  schema: jsonb("esquema").$type<Record<string, unknown>>().default({}).notNull(),
+  lastSyncedAt: timestamp("ultima_sincronizacao_em", { withTimezone: true }),
+  createdAt: timestamp("criado_em", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("atualizado_em", { withTimezone: true }).defaultNow().notNull(),
 });
 
 export const syncedRecords = pgTable(
-  "synced_records",
+  "registros_sincronizados",
   {
-    sourceKey: text("source_key").notNull().references(() => syncedSources.key, { onDelete: "cascade" }),
-    externalId: text("external_id").notNull(),
-    label: text("label").notNull(),
-    data: jsonb("data").$type<Record<string, unknown>>().default({}).notNull(),
-    active: boolean("active").default(true).notNull(),
-    lastSyncedAt: timestamp("last_synced_at", { withTimezone: true }).defaultNow().notNull(),
+    sourceKey: text("chave_fonte").notNull().references(() => syncedSources.key, { onDelete: "cascade" }),
+    externalId: text("id_externo").notNull(),
+    label: text("rotulo").notNull(),
+    data: jsonb("dados").$type<Record<string, unknown>>().default({}).notNull(),
+    active: boolean("ativo").default(true).notNull(),
+    lastSyncedAt: timestamp("ultima_sincronizacao_em", { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [
     primaryKey({ columns: [table.sourceKey, table.externalId] }),
-    index("synced_records_source_active_idx").on(table.sourceKey, table.active),
+    index("registros_sincronizados_fonte_ativo_idx").on(table.sourceKey, table.active),
   ],
 );
 
-export const checklists = pgTable("checklists", {
+export const checklists = pgTable("listas_verificacao", {
   id: uuid("id").defaultRandom().primaryKey(),
-  title: text("title").notNull(),
-  description: text("description"),
+  title: text("titulo").notNull(),
+  description: text("descricao"),
   status: checklistStatusEnum("status").default("draft").notNull(),
-  createdBy: uuid("created_by").notNull().references(() => users.id),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  createdBy: uuid("criado_por").notNull().references(() => users.id),
+  createdAt: timestamp("criado_em", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("atualizado_em", { withTimezone: true }).defaultNow().notNull(),
 });
 
 export const checklistFields = pgTable(
-  "checklist_fields",
+  "campos_lista_verificacao",
   {
     id: uuid("id").defaultRandom().primaryKey(),
-    checklistId: uuid("checklist_id").notNull().references(() => checklists.id, { onDelete: "cascade" }),
-    label: text("label").notNull(),
-    description: text("description"),
-    type: fieldTypeEnum("type").notNull(),
-    required: boolean("required").default(false).notNull(),
-    position: integer("position").notNull(),
-    sourceKey: text("source_key").references(() => syncedSources.key),
-    configuration: jsonb("configuration").$type<Record<string, unknown>>().default({}).notNull(),
+    checklistId: uuid("id_lista_verificacao").notNull().references(() => checklists.id, { onDelete: "cascade" }),
+    label: text("rotulo").notNull(),
+    description: text("descricao"),
+    type: fieldTypeEnum("tipo").notNull(),
+    required: boolean("obrigatorio").default(false).notNull(),
+    position: integer("posicao").notNull(),
+    sourceKey: text("chave_fonte").references(() => syncedSources.key),
+    configuration: jsonb("configuracao").$type<Record<string, unknown>>().default({}).notNull(),
   },
-  (table) => [index("checklist_fields_order_idx").on(table.checklistId, table.position)],
+  (table) => [index("campos_lista_verificacao_ordem_idx").on(table.checklistId, table.position)],
 );
 
 export const checklistFieldOptions = pgTable(
-  "checklist_field_options",
+  "opcoes_campo_lista_verificacao",
   {
     id: uuid("id").defaultRandom().primaryKey(),
-    fieldId: uuid("field_id").notNull().references(() => checklistFields.id, { onDelete: "cascade" }),
-    value: text("value").notNull(),
-    label: text("label").notNull(),
-    position: integer("position").notNull(),
-    active: boolean("active").default(true).notNull(),
+    fieldId: uuid("id_campo").notNull().references(() => checklistFields.id, { onDelete: "cascade" }),
+    value: text("valor").notNull(),
+    label: text("rotulo").notNull(),
+    position: integer("posicao").notNull(),
+    active: boolean("ativo").default(true).notNull(),
   },
-  (table) => [index("checklist_options_order_idx").on(table.fieldId, table.position)],
+  (table) => [index("opcoes_campo_lista_verificacao_ordem_idx").on(table.fieldId, table.position)],
 );
 
-export const checklistResponses = pgTable("checklist_responses", {
+export const checklistResponses = pgTable("respostas_lista_verificacao", {
   id: uuid("id").defaultRandom().primaryKey(),
-  checklistId: uuid("checklist_id").notNull().references(() => checklists.id),
-  userId: uuid("user_id").notNull().references(() => users.id),
-  answers: jsonb("answers").$type<Record<string, unknown>>().default({}).notNull(),
-  submittedAt: timestamp("submitted_at", { withTimezone: true }),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  checklistId: uuid("id_lista_verificacao").notNull().references(() => checklists.id),
+  userId: uuid("id_usuario").notNull().references(() => users.id),
+  answers: jsonb("respostas").$type<Record<string, unknown>>().default({}).notNull(),
+  submittedAt: timestamp("enviado_em", { withTimezone: true }),
+  createdAt: timestamp("criado_em", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("atualizado_em", { withTimezone: true }).defaultNow().notNull(),
 });
 
 export type User = typeof users.$inferSelect;

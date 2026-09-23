@@ -9,7 +9,7 @@ export const syncUsersSchema = z.object({
   fullSnapshot: z.boolean().default(true),
   sourceTimestamp: z.coerce.date().optional(),
   users: z.array(z.object({
-    idfilial: z.coerce.number().int(),
+    idfilial: z.string().trim().min(1).max(120),
     categoria: z.string().trim().max(120).nullish(),
     idfuncionario: z.coerce.number().int().positive(),
     nomefuncionario: z.string().trim().min(1).max(200),

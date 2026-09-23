@@ -56,7 +56,7 @@ export async function POST(request: Request) {
           .insert(users)
           .values({
             branchId: item.idfilial,
-            category: item.categoria || null,
+            category: item.categoria ?? null,
             employeeId: item.idfuncionario,
             employeeName: item.nomefuncionario,
             login: item.login,
@@ -71,7 +71,7 @@ export async function POST(request: Request) {
             target: users.employeeId,
             set: {
               branchId: item.idfilial,
-              category: item.categoria || null,
+              category: item.categoria ?? null,
               employeeName: item.nomefuncionario,
               login: item.login,
               passwordHash: item.senha.toLowerCase(),
