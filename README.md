@@ -122,3 +122,6 @@ npm run build
 5. Faça o deploy. O endpoint de saúde é `GET /api/health`.
 
 Nunca coloque `.env.local`, connection strings, tokens ou dumps do Firebird no Git.
+
+
+Deployment atualizado para validar a API de sincronização.
