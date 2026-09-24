@@ -6,6 +6,7 @@ import { verifyLegacyPassword } from "@/lib/auth-crypto";
 import { rateLimit, requestIp } from "@/lib/rate-limit";
 import { createSession } from "@/lib/session";
 import { loginSchema } from "@/lib/validation";
+import { getLandingPath } from "@/lib/permissions";
 
 export const runtime = "nodejs";
 
@@ -27,5 +28,5 @@ export async function POST(request: Request) {
   }
 
   await createSession(user.id);
-  return NextResponse.json({ redirectTo: user.isAdmin ? "/admin/checklists" : "/dashboard" });
+  return NextResponse.json({ redirectTo: await getLandingPath(user) });
 }

@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { checklistFields, checklists } from "@/db/schema";
-import { getApiAdmin } from "@/lib/api-auth";
+import { getApiPermission } from "@/lib/api-auth";
 import { createChecklistSchema } from "@/lib/validation";
 
 export async function POST(request: Request) {
-  const auth = await getApiAdmin();
+  const auth = await getApiPermission("createChecklist");
   if ("error" in auth) return auth.error;
   const parsed = createChecklistSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Revise os dados do checklist.", details: parsed.error.flatten() }, { status: 400 });

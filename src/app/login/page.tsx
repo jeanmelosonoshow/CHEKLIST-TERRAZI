@@ -2,12 +2,13 @@ import { redirect } from "next/navigation";
 import { LoginForm } from "@/components/LoginForm";
 import { Logo } from "@/components/Logo";
 import { getCurrentUser } from "@/lib/session";
+import { getLandingPath } from "@/lib/permissions";
 
 export const dynamic = "force-dynamic";
 
 export default async function LoginPage() {
   const user = await getCurrentUser();
-  if (user) redirect(user.isAdmin ? "/admin/checklists" : "/dashboard");
+  if (user) redirect(await getLandingPath(user));
   return (
     <main className="loginPage">
       <section className="loginIntro">

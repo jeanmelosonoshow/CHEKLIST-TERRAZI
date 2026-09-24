@@ -48,6 +48,17 @@ export const users = pgTable(
   ],
 );
 
+export const categoryPermissions = pgTable("permissoes_categoria", {
+  category: text("categoria").primaryKey(),
+  viewChecklist: boolean("visualizar_checklist").default(false).notNull(),
+  createChecklist: boolean("incluir_checklist").default(false).notNull(),
+  editChecklist: boolean("editar_checklist").default(false).notNull(),
+  reports: boolean("relatorios").default(false).notNull(),
+  dashboard: boolean("dashboard").default(false).notNull(),
+  createdAt: timestamp("criado_em", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("atualizado_em", { withTimezone: true }).defaultNow().notNull(),
+});
+
 export const sessions = pgTable(
   "sessoes",
   {

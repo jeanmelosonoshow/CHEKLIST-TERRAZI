@@ -7,8 +7,10 @@ Primeira fase da plataforma responsiva de controle de processos e checklists. O 
 - Login com credenciais sincronizadas do Firebird e compatibilidade com o MD5 lowercase do legado.
 - Senha e hash nunca são enviados ao navegador; a comparação acontece somente no servidor.
 - Sessões opacas, revogáveis e armazenadas no PostgreSQL, entregues em cookie `HttpOnly`, `SameSite=Lax` e `Secure` em produção.
-- Área inicial responsiva para usuários comuns e área administrativa exclusiva do funcionário `752`.
+- Controle de acesso por categoria, com negação por padrão e acesso total reservado ao funcionário `752`.
+- Configuração administrativa das permissões de dashboard, visualização, inclusão e edição de checklists e relatórios.
 - Criação de checklists em rascunho com campos de texto, número, data, sim/não e seleções.
+- Edição protegida de checklists, permitida somente para usuários autorizados e enquanto o status for rascunho.
 - Modelo para opções manuais e para seleções alimentadas por fontes sincronizadas.
 - APIs autenticadas para sincronizar funcionários e futuras tabelas/consultas do Firebird.
 - Registro de execuções e rate limiting via Upstash Redis, com fallback local em desenvolvimento.
@@ -102,6 +104,8 @@ O `sourceKey` aceita letras minúsculas, números, hífen e sublinhado. As fonte
 - Gerar nova migration: `npm run db:generate`
 - Aplicar migrations: `npm run db:migrate`
 - Inspecionar dados: `npm run db:studio`
+
+A migration `0003_permissoes_categoria.sql` cria a tabela `permissoes_categoria`. Após aplicá-la, todas as categorias começam sem permissões; o administrador deve configurá-las em **Permissões**. O funcionário `752` não depende dessa tabela e mantém acesso total pela regra central da aplicação.
 
 O MD5 existe apenas por compatibilidade e não é adequado para novas senhas. Uma fase futura pode migrar gradualmente para Argon2/bcrypt quando a sincronização não sobrescrever mais o valor.
 

@@ -19,6 +19,7 @@ import {
 
 import { authorizeSync } from "@/lib/sync-auth";
 import { syncUsersSchema } from "@/lib/validation";
+import { isAdministrator } from "@/lib/permissions";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -120,7 +121,7 @@ export async function POST(
         active: true,
 
         isAdmin:
-          item.idfuncionario === 752,
+          isAdministrator({ employeeId: item.idfuncionario }),
 
         sourceUpdatedAt:
           parsed.data.sourceTimestamp ??

@@ -50,6 +50,7 @@ button:disabled { cursor: not-allowed; opacity: .55; }
 .secondaryButton { padding: 10px 14px; border: 1px solid var(--line); border-radius: 9px; color: var(--green-dark); background: white; }
 .textButton { padding: 7px; color: var(--muted); background: transparent; }
 .formError { margin: 0; color: var(--danger); font-size: .83rem; }
+.formSuccess { margin: 0 0 14px; color: var(--green); font-size: .83rem; font-weight: 700; }
 .appShell { min-height: 100vh; }
 .topbar { position: sticky; z-index: 10; top: 0; display: flex; height: 72px; align-items: center; gap: 38px; padding: 0 clamp(18px, 4vw, 64px); border-bottom: 1px solid var(--line); background: rgba(255, 255, 255, .94); backdrop-filter: blur(12px); }
 .topbar nav { display: flex; height: 100%; align-items: center; gap: 4px; }
@@ -88,6 +89,12 @@ th { color: var(--muted); background: #fafcfb; font-size: .7rem; letter-spacing:
 tbody tr:last-child td { border-bottom: 0; }
 td strong, td small { display: block; }
 td small { margin-top: 4px; color: var(--muted); }
+.permissionsTable th:not(:first-child), .permissionsTable td:not(:first-child) { text-align: center; }
+.permissionToggle { display: inline-flex; min-width: 54px; align-items: center; justify-content: center; gap: 6px; cursor: pointer; }
+.permissionToggle input { width: auto; }
+.accessDenied { min-height: 60vh; }
+.accessDenied h1 { font-size: 2rem; }
+.accessDenied .primaryButton { margin-top: 20px; }
 .modalBackdrop { position: fixed; z-index: 30; inset: 0; display: grid; padding: 24px; place-items: center; background: rgba(7, 25, 18, .57); backdrop-filter: blur(4px); }
 .builder { overflow: auto; width: min(980px, 100%); max-height: calc(100vh - 48px); padding: 28px; border-radius: 18px; background: white; box-shadow: var(--shadow); }
 .builderHeader { display: flex; align-items: start; justify-content: space-between; }

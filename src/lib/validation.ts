@@ -30,3 +30,14 @@ export const createChecklistSchema = z.object({
   description: z.string().trim().max(1000).optional(),
   fields: z.array(fieldSchema).min(1).max(100),
 });
+
+export const updateChecklistSchema = createChecklistSchema;
+
+export const updateCategoryPermissionsSchema = z.object({
+  category: z.string().trim().min(1).max(120),
+  viewChecklist: z.boolean(),
+  createChecklist: z.boolean(),
+  editChecklist: z.boolean(),
+  reports: z.boolean(),
+  dashboard: z.boolean(),
+});

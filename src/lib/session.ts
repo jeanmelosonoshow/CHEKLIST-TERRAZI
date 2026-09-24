@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { sessions, users, type User } from "@/db/schema";
 import { createSessionToken, hashSessionToken } from "./auth-crypto";
+import { getUserPermissions, hasPermission, isAdministrator, type PermissionKey } from "./permissions";
 
 export const SESSION_COOKIE = "terrazzi_session";
 const SESSION_DAYS = 7;
@@ -49,6 +50,20 @@ export async function requireUser() {
 
 export async function requireAdmin() {
   const user = await requireUser();
-  if (!user.isAdmin) redirect("/dashboard");
+  if (!isAdministrator(user)) redirect("/sem-acesso");
   return user;
+}
+
+export async function requirePermission(permission: PermissionKey) {
+  const user = await requireUser();
+  const permissions = await getUserPermissions(user);
+  if (!hasPermission(user, permissions, permission)) redirect("/sem-acesso");
+  return { user, permissions };
+}
+
+export async function requireAnyPermission(required: PermissionKey[]) {
+  const user = await requireUser();
+  const permissions = await getUserPermissions(user);
+  if (!required.some((permission) => hasPermission(user, permissions, permission))) redirect("/sem-acesso");
+  return { user, permissions };
 }
