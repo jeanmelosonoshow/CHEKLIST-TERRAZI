@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 
 type Field = { label: string; type: "short_text" | "long_text" | "number" | "date" | "boolean" | "single_select" | "multi_select"; required: boolean; sourceKey: string | null };
@@ -15,6 +15,21 @@ export function ChecklistEditor({ checklistId, sources }: { checklistId: string;
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const savingRef = useRef(saving);
+  const isOpen = Boolean(data);
+
+  useEffect(() => { savingRef.current = saving; }, [saving]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    headingRef.current?.focus();
+    const closeOnEscape = (event: KeyboardEvent) => { if (event.key === "Escape" && !savingRef.current) setData(null); };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => { document.body.style.overflow = previousOverflow; window.removeEventListener("keydown", closeOnEscape); };
+  }, [isOpen]);
 
   async function open() {
     setLoading(true); setMessage("");
@@ -47,15 +62,15 @@ export function ChecklistEditor({ checklistId, sources }: { checklistId: string;
 
   return <>
     <button className="secondaryButton" disabled={loading} onClick={open}>{loading ? "Abrindo…" : "Editar"}</button>
-    {!data && message && <small className="formError">{message}</small>}
+    {!data && message && <small className="formError" role="alert">{message}</small>}
     {data && <div className="modalBackdrop" role="presentation">
       <section className="builder" role="dialog" aria-modal="true" aria-labelledby={`edit-${checklistId}`}>
-        <div className="builderHeader"><div><p className="eyebrow">RASCUNHO</p><h2 id={`edit-${checklistId}`}>Editar checklist</h2></div><button className="closeButton" onClick={() => setData(null)} aria-label="Fechar">×</button></div>
+        <div className="builderHeader"><div><p className="eyebrow">RASCUNHO</p><h2 id={`edit-${checklistId}`} ref={headingRef} tabIndex={-1}>Editar checklist</h2></div><button className="closeButton" onClick={() => setData(null)} aria-label="Fechar edição do checklist">×</button></div>
         <form onSubmit={submit}>
           <div className="formGrid"><label>Título<input name="title" defaultValue={data.title} minLength={3} required /></label><label>Descrição<textarea name="description" defaultValue={data.description || ""} rows={2} /></label></div>
           <div className="fieldsTitle"><div><h3>Perguntas e campos</h3><p>A edição é permitida somente enquanto o checklist estiver em rascunho.</p></div><button type="button" className="secondaryButton" onClick={() => setData((current) => current ? { ...current, fields: [...current.fields, { label: "", type: "short_text", required: false, sourceKey: null }] } : current)}>+ Adicionar campo</button></div>
-          <div className="fieldList">{data.fields.map((field, index) => <div className="fieldRow" key={index}><span className="fieldNumber">{index + 1}</span><label className="fieldLabel">Pergunta<input value={field.label} onChange={(event) => update(index, { label: event.target.value })} required /></label><label>Tipo<select value={field.type} onChange={(event) => update(index, { type: event.target.value as Field["type"], sourceKey: null })}>{types.map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>{(field.type === "single_select" || field.type === "multi_select") && <label>Fonte<select value={field.sourceKey || ""} onChange={(event) => update(index, { sourceKey: event.target.value || null })}><option value="">Opções manuais (futuro)</option>{sources.map((source) => <option value={source.key} key={source.key}>{source.label}</option>)}</select></label>}<label className="checkLabel"><input type="checkbox" checked={field.required} onChange={(event) => update(index, { required: event.target.checked })} />Obrigatório</label><button type="button" className="removeButton" disabled={data.fields.length === 1} onClick={() => setData((current) => current ? { ...current, fields: current.fields.filter((_, i) => i !== index) } : current)} aria-label="Remover campo">×</button></div>)}</div>
-          {message && <p className="formError">{message}</p>}
+          <div className="fieldList">{data.fields.map((field, index) => <div className="fieldRow" key={index}><span className="fieldNumber">{index + 1}</span><label className="fieldLabel">Pergunta<input value={field.label} onChange={(event) => update(index, { label: event.target.value })} required /></label><label className="typeField">Tipo<select value={field.type} onChange={(event) => update(index, { type: event.target.value as Field["type"], sourceKey: null })}>{types.map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>{(field.type === "single_select" || field.type === "multi_select") && <label className="sourceField">Fonte<select value={field.sourceKey || ""} onChange={(event) => update(index, { sourceKey: event.target.value || null })}><option value="">Opções manuais (futuro)</option>{sources.map((source) => <option value={source.key} key={source.key}>{source.label}</option>)}</select></label>}<label className="checkLabel"><input type="checkbox" checked={field.required} onChange={(event) => update(index, { required: event.target.checked })} />Obrigatório</label><button type="button" className="removeButton" disabled={data.fields.length === 1} onClick={() => setData((current) => current ? { ...current, fields: current.fields.filter((_, i) => i !== index) } : current)} aria-label={`Remover campo ${index + 1}`}>×</button></div>)}</div>
+          {message && <p className="formError" role="alert">{message}</p>}
           <div className="builderActions"><button type="button" className="textButton" onClick={() => setData(null)}>Cancelar</button><button className="primaryButton" disabled={saving}>{saving ? "Salvando…" : "Salvar alterações"}</button></div>
         </form>
       </section>
