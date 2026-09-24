@@ -10,6 +10,7 @@ const columns: { key: PermissionKey; label: string }[] = [
   { key: "editChecklist", label: "Editar checklist" },
   { key: "reports", label: "Relatórios" },
   { key: "dashboard", label: "Dashboard" },
+  { key: "stages", label: "Etapas" },
 ];
 
 export function PermissionsEditor({ initialRows }: { initialRows: Row[] }) {

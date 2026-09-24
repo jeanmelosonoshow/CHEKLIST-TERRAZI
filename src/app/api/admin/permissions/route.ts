@@ -19,6 +19,7 @@ export async function PUT(request: Request) {
       editChecklist: values.editChecklist,
       reports: values.reports,
       dashboard: values.dashboard,
+      stages: values.stages,
       updatedAt: values.updatedAt,
     },
   }).returning();

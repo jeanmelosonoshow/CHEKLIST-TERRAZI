@@ -41,4 +41,5 @@ export const updateCategoryPermissionsSchema = z.object({
   editChecklist: z.boolean(),
   reports: z.boolean(),
   dashboard: z.boolean(),
+  stages: z.boolean(),
 });

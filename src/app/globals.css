@@ -100,6 +100,24 @@ td small { margin-top: 4px; color: var(--muted); }
 .accessDenied { min-height: 60vh; }
 .accessDenied h1 { font-size: 2rem; }
 .accessDenied .primaryButton { margin-top: 20px; }
+.stageLegend { display: flex; margin-bottom: 18px; flex-wrap: wrap; gap: 8px; }
+.stageStatus { display: inline-flex; min-height: 30px; padding: 6px 9px; align-items: center; gap: 7px; border: 1px solid transparent; border-radius: 999px; font-size: .64rem; font-weight: 850; letter-spacing: .035em; line-height: 1.25; text-transform: uppercase; white-space: nowrap; }
+.stageStatusDot { width: 7px; height: 7px; flex: 0 0 7px; border-radius: 50%; background: currentColor; }
+.stageStatus-pending { color: #58625d; border-color: #d8dedb; background: #edf0ee; }
+.stageStatus-completed { color: #0c6549; border-color: #b9e2cf; background: #dff4e9; }
+.stageStatus-notPerformed { color: #765313; border-color: #efd99e; background: #fff0c7; }
+.stageStatus-partiallyCompleted { color: #943939; border-color: #efc1c1; background: #fbe2e2; }
+.stageStatus-notApplicable { color: #695941; border-color: #dfd1bd; background: #f1e9dc; }
+.stagesTable table { min-width: 1120px; }
+.stagesTable th:not(:first-child), .stagesTable td:not(:first-child) { text-align: center; }
+.stagesTable th:first-child, .stagesTable td:first-child { position: sticky; z-index: 1; left: 0; min-width: 250px; background: var(--paper); box-shadow: 8px 0 14px -14px rgba(23, 38, 31, .55); }
+.stagesTable th:first-child { z-index: 2; background: #fafcfb; }
+.stagesEmpty { display: grid; min-height: 300px; padding: clamp(24px, 4vw, 42px); grid-template-columns: minmax(240px, .75fr) minmax(420px, 1.25fr); align-items: center; gap: clamp(28px, 5vw, 70px); border: 1px dashed #becbc4; border-radius: 16px; background: rgba(255,255,255,.65); }
+.stageTemplate { display: grid; margin: 0; padding: 0; grid-template-columns: repeat(5, minmax(105px, 1fr)); list-style: none; }
+.stageTemplate li { position: relative; display: grid; min-width: 0; gap: 9px; justify-items: center; color: var(--muted); text-align: center; font-size: .72rem; }
+.stageTemplate li:not(:last-child)::after { position: absolute; z-index: 0; top: 15px; left: calc(50% + 17px); width: calc(100% - 34px); height: 2px; background: var(--line); content: ""; }
+.stageTemplate li span { z-index: 1; display: grid; width: 32px; height: 32px; place-items: center; border: 2px solid #cdd8d2; border-radius: 50%; color: var(--green); background: var(--paper); font-size: .72rem; font-weight: 850; }
+.stageTemplate li strong { max-width: 120px; overflow-wrap: anywhere; }
 .modalBackdrop { position: fixed; z-index: 30; inset: 0; display: grid; padding: max(24px, env(safe-area-inset-top)) max(24px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(24px, env(safe-area-inset-left)); place-items: center; background: rgba(7, 25, 18, .57); backdrop-filter: blur(4px); }
 .builder { overscroll-behavior: contain; overflow: auto; width: min(980px, 100%); max-height: calc(100dvh - 48px); padding: 28px; border-radius: 18px; background: white; box-shadow: var(--shadow); }
 .builderHeader { display: flex; align-items: start; justify-content: space-between; }
@@ -154,6 +172,8 @@ td small { margin-top: 4px; color: var(--muted); }
   .removeButton { grid-column: 3; grid-row: 1; }
   .checkLabel { margin-bottom: 0; }
   .builder { padding: 20px; }
+  .stagesEmpty { grid-template-columns: 1fr; }
+  .stageTemplate { overflow-x: auto; padding-bottom: 8px; grid-template-columns: repeat(5, minmax(120px, 1fr)); overscroll-behavior-inline: contain; }
 }
 @media (max-width: 700px) {
   .responsiveTable { overflow: visible; border: 0; background: transparent; }
@@ -168,6 +188,10 @@ td small { margin-top: 4px; color: var(--muted); }
   .responsiveTable td:last-child { border-bottom: 0; }
   .permissionsTable .permissionToggle { justify-content: flex-end; }
   .permissionsTable .primaryButton { width: min(100%, 190px); }
+  .stagesTable table { min-width: 0; }
+  .stagesTable th:first-child, .stagesTable td:first-child { position: static; min-width: 0; box-shadow: none; }
+  .stagesTable td:not(:first-child) { text-align: right; }
+  .stagesTable .stageStatus { max-width: 58%; justify-content: flex-end; white-space: normal; text-align: right; }
 }
 @media (max-width: 470px) {
   .loginIntro { min-height: 250px; padding: 22px; }
@@ -183,6 +207,10 @@ td small { margin-top: 4px; color: var(--muted); }
   .builderActions { position: sticky; bottom: calc(-1 * max(18px, env(safe-area-inset-bottom))); z-index: 2; margin: 24px -16px calc(-1 * max(18px, env(safe-area-inset-bottom))); padding: 14px 16px max(14px, env(safe-area-inset-bottom)); border-top: 1px solid var(--line); background: rgba(255,255,255,.96); backdrop-filter: blur(10px); }
   .builderActions button { flex: 1; }
   .emptyState { min-height: 230px; padding: 26px 20px; }
+  .stageLegend { display: grid; grid-template-columns: 1fr 1fr; }
+  .stageLegend .stageStatus { width: 100%; justify-content: flex-start; white-space: normal; }
+  .stageLegend .stageStatus:last-child { grid-column: 1 / -1; }
+  .stagesEmpty { padding: 24px 18px; }
 }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }

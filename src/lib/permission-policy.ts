@@ -6,6 +6,7 @@ export const permissionKeys = [
   "editChecklist",
   "reports",
   "dashboard",
+  "stages",
 ] as const;
 
 export type PermissionKey = (typeof permissionKeys)[number];
@@ -17,6 +18,7 @@ export const NO_PERMISSIONS: PermissionSet = {
   editChecklist: false,
   reports: false,
   dashboard: false,
+  stages: false,
 };
 
 export const ALL_PERMISSIONS: PermissionSet = {
@@ -25,6 +27,7 @@ export const ALL_PERMISSIONS: PermissionSet = {
   editChecklist: true,
   reports: true,
   dashboard: true,
+  stages: true,
 };
 
 export function isAdministrator(user: { employeeId: number }) {
@@ -43,6 +46,7 @@ export function landingPath(user: { employeeId: number }, permissions: Permissio
   if (isAdministrator(user) || permissions.createChecklist || permissions.editChecklist) return "/admin/checklists";
   if (permissions.dashboard) return "/dashboard";
   if (permissions.viewChecklist) return "/checklists";
+  if (permissions.stages) return "/etapas";
   if (permissions.reports) return "/relatorios";
   return "/sem-acesso";
 }

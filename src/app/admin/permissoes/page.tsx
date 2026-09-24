@@ -23,7 +23,7 @@ export default async function PermissionsPage() {
   ])).sort((a, b) => a.localeCompare(b, "pt-BR"));
   const rows = categoryNames.map((category) => {
     const item = configuredByCategory.get(category);
-    return { category, configured: Boolean(item), viewChecklist: item?.viewChecklist ?? NO_PERMISSIONS.viewChecklist, createChecklist: item?.createChecklist ?? NO_PERMISSIONS.createChecklist, editChecklist: item?.editChecklist ?? NO_PERMISSIONS.editChecklist, reports: item?.reports ?? NO_PERMISSIONS.reports, dashboard: item?.dashboard ?? NO_PERMISSIONS.dashboard };
+    return { category, configured: Boolean(item), viewChecklist: item?.viewChecklist ?? NO_PERMISSIONS.viewChecklist, createChecklist: item?.createChecklist ?? NO_PERMISSIONS.createChecklist, editChecklist: item?.editChecklist ?? NO_PERMISSIONS.editChecklist, reports: item?.reports ?? NO_PERMISSIONS.reports, dashboard: item?.dashboard ?? NO_PERMISSIONS.dashboard, stages: item?.stages ?? NO_PERMISSIONS.stages };
   });
 
   return <AppShell user={user} permissions={permissions} active="permissions">

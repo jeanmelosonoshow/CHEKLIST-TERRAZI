@@ -24,6 +24,7 @@ export async function getUserPermissions(user: User): Promise<PermissionSet> {
       editChecklist: categoryPermissions.editChecklist,
       reports: categoryPermissions.reports,
       dashboard: categoryPermissions.dashboard,
+      stages: categoryPermissions.stages,
     })
     .from(categoryPermissions)
     .where(eq(categoryPermissions.category, user.category))

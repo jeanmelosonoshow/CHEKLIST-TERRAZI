@@ -56,6 +56,7 @@ export const categoryPermissions = pgTable("permissoes_categoria", {
   editChecklist: boolean("editar_checklist").default(false).notNull(),
   reports: boolean("relatorios").default(false).notNull(),
   dashboard: boolean("dashboard").default(false).notNull(),
+  stages: boolean("etapas").default(false).notNull(),
   createdAt: timestamp("criado_em", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("atualizado_em", { withTimezone: true }).defaultNow().notNull(),
 });

@@ -109,6 +109,8 @@ A migration `0003_permissoes_categoria.sql` cria a tabela `permissoes_categoria`
 
 A migration `0004_codigos_humanos.sql` adiciona códigos numéricos gerados automaticamente para checklists, campos e respostas. Os UUIDs continuam sendo as chaves técnicas e os códigos são apresentados no formato legível `CHK-000001`, `CMP-000001` e `RSP-000001`.
 
+A seção **Etapas** possui permissão própria por categoria e um painel responsivo preparado para apresentar uma linha por filial, venda e cliente. O molde inicial contém Separação, Desmontagem, Impermeabilização, Entrega e Montagem. A persistência operacional ficará desacoplada até que a origem dos selects e a estratégia de salvamento sejam definidas.
+
 O MD5 existe apenas por compatibilidade e não é adequado para novas senhas. Uma fase futura pode migrar gradualmente para Argon2/bcrypt quando a sincronização não sobrescrever mais o valor.
 
 ## Verificações
