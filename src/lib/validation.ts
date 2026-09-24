@@ -19,6 +19,7 @@ export const syncUsersSchema = z.object({
 });
 
 const fieldSchema = z.object({
+  id: z.string().uuid().optional(),
   label: z.string().trim().min(1).max(200),
   type: z.enum(["short_text", "long_text", "number", "date", "boolean", "single_select", "multi_select"]),
   required: z.boolean().default(false),

@@ -1,4 +1,5 @@
 import {
+  bigint,
   boolean,
   index,
   integer,
@@ -112,6 +113,7 @@ export const syncedRecords = pgTable(
 
 export const checklists = pgTable("listas_verificacao", {
   id: uuid("id").defaultRandom().primaryKey(),
+  code: bigint("codigo", { mode: "number" }).generatedAlwaysAsIdentity().notNull().unique(),
   title: text("titulo").notNull(),
   description: text("descricao"),
   status: checklistStatusEnum("status").default("draft").notNull(),
@@ -124,6 +126,7 @@ export const checklistFields = pgTable(
   "campos_lista_verificacao",
   {
     id: uuid("id").defaultRandom().primaryKey(),
+    code: bigint("codigo", { mode: "number" }).generatedAlwaysAsIdentity().notNull().unique(),
     checklistId: uuid("id_lista_verificacao").notNull().references(() => checklists.id, { onDelete: "cascade" }),
     label: text("rotulo").notNull(),
     description: text("descricao"),
@@ -151,6 +154,7 @@ export const checklistFieldOptions = pgTable(
 
 export const checklistResponses = pgTable("respostas_lista_verificacao", {
   id: uuid("id").defaultRandom().primaryKey(),
+  code: bigint("codigo", { mode: "number" }).generatedAlwaysAsIdentity().notNull().unique(),
   checklistId: uuid("id_lista_verificacao").notNull().references(() => checklists.id),
   userId: uuid("id_usuario").notNull().references(() => users.id),
   answers: jsonb("respostas").$type<Record<string, unknown>>().default({}).notNull(),

@@ -3,6 +3,7 @@ import { AppShell } from "@/components/AppShell";
 import { db } from "@/db";
 import { checklists } from "@/db/schema";
 import { requirePermission } from "@/lib/session";
+import { formatHumanCode } from "@/lib/human-code";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +25,7 @@ export default async function DashboardPage() {
       </section>
       {permissions.viewChecklist && <section className="sectionBlock">
         <div className="sectionHeading"><div><p className="eyebrow">MEUS FLUXOS</p><h2>Checklists disponíveis</h2></div></div>
-        {available.length ? <div className="cardGrid">{available.map((item) => <article className="checklistCard" key={item.id}><span className="status published">Publicado</span><h3>{item.title}</h3><p>{item.description || "Sem descrição."}</p><button className="secondaryButton" disabled>Iniciar em breve</button></article>)}</div>
+        {available.length ? <div className="cardGrid">{available.map((item) => <article className="checklistCard" key={item.id}><span className="status published">Publicado</span><small className="entityCode">{formatHumanCode("CHK", item.code)}</small><h3>{item.title}</h3><p>{item.description || "Sem descrição."}</p><button className="secondaryButton" disabled>Iniciar em breve</button></article>)}</div>
           : <div className="emptyState"><span>✓</span><h3>Tudo organizado por aqui</h3><p>Os checklists publicados aparecerão nesta área.</p></div>}
       </section>}
     </AppShell>

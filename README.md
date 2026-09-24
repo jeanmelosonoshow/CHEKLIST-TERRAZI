@@ -107,6 +107,8 @@ O `sourceKey` aceita letras minúsculas, números, hífen e sublinhado. As fonte
 
 A migration `0003_permissoes_categoria.sql` cria a tabela `permissoes_categoria`. Após aplicá-la, todas as categorias começam sem permissões; o administrador deve configurá-las em **Permissões**. O funcionário `752` não depende dessa tabela e mantém acesso total pela regra central da aplicação.
 
+A migration `0004_codigos_humanos.sql` adiciona códigos numéricos gerados automaticamente para checklists, campos e respostas. Os UUIDs continuam sendo as chaves técnicas e os códigos são apresentados no formato legível `CHK-000001`, `CMP-000001` e `RSP-000001`.
+
 O MD5 existe apenas por compatibilidade e não é adequado para novas senhas. Uma fase futura pode migrar gradualmente para Argon2/bcrypt quando a sincronização não sobrescrever mais o valor.
 
 ## Verificações

@@ -29,6 +29,13 @@
       "when": 1790251200000,
       "tag": "0003_permissoes_categoria",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1790269200000,
+      "tag": "0004_codigos_humanos",
+      "breakpoints": true
     }
   ]
 }
