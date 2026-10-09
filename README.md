@@ -4,7 +4,7 @@ Primeira fase da plataforma responsiva de controle de processos e checklists. O 
 
 ## O que está pronto
 
-- Login com credenciais sincronizadas do Firebird e compatibilidade com o MD5 lowercase do legado.
+- Login validado em tempo real no Firebird por meio do Gateway HTTPS assinado, com compatibilidade com o MD5 lowercase do legado.
 - Senha e hash nunca são enviados ao navegador; a comparação acontece somente no servidor.
 - Sessões opacas, revogáveis e armazenadas no PostgreSQL, entregues em cookie `HttpOnly`, `SameSite=Lax` e `Secure` em produção.
 - Controle de acesso por categoria, com negação por padrão e acesso total reservado ao funcionário `752`.
@@ -32,24 +32,39 @@ npm run db:migrate
 npm run dev
 ```
 
-A aplicação estará em `http://localhost:3000`. O primeiro acesso só funcionará depois da sincronização de usuários.
+A aplicação estará em `http://localhost:3000`. No primeiro login válido, o usuário retornado pelo Gateway é criado ou atualizado no Neon automaticamente.
 
 ## Variáveis de ambiente
 
 | Variável | Obrigatória | Uso |
 | --- | --- | --- |
 | `DATABASE_URL` | Sim | String PostgreSQL/Neon; prefira a URL com pool no Vercel. |
+| `FIREBIRD_GATEWAY_URL` | Sim | URL pública do Gateway, por exemplo `https://gateway.jgmelo.company`. |
+| `FIREBIRD_GATEWAY_TOKEN_ID` | Sim | Identificador do token exclusivo deste projeto. |
+| `FIREBIRD_GATEWAY_HMAC_SECRET` | Sim | Segredo HMAC do token; mantenha somente nas variáveis server-side. |
 | `SYNC_API_TOKEN` | Sim | Bearer token exclusivo do agente Windows, mínimo 32 caracteres. |
 | `UPSTASH_REDIS_REST_URL` | Recomendada | Endpoint REST do Redis. |
 | `UPSTASH_REDIS_REST_TOKEN` | Recomendada | Token REST do Redis. |
 | `NEXT_PUBLIC_APP_URL` | Não | URL pública usada por scripts. |
 
-## Sincronização Firebird → Windows → Vercel/Neon
+## Autenticação Firebird via Gateway
 
-A Vercel não acessa o Firebird. Um agente na máquina Windows autorizada executa esta consulta, monta JSON e envia por HTTPS:
+O endpoint de login envia ao Gateway uma consulta parametrizada e assinada por HMAC. A senha informada é convertida para o hash MD5 legado antes da consulta; a senha em texto puro e o segredo HMAC nunca são enviados ao navegador nem gravados em logs. Configure as três variáveis `FIREBIRD_GATEWAY_*` na Vercel para os ambientes desejados.
+
+No TS, crie um token exclusivo para este projeto e copie o identificador e o segredo exibidos para a Vercel:
+
+```powershell
+.\SonoShowGateway.exe token-create checklist-terrazi --rate-limit 300
+```
+
+Após o deploy, confirme primeiro a saúde do túnel com `https://gateway.jgmelo.company/health` e depois teste o login da aplicação. Um login válido também atualiza filial, categoria, nome, hash e status do funcionário no Neon, preservando sessões, permissões e os demais dados do sistema.
+
+## Sincronização em lote (compatibilidade)
+
+O endpoint existente de sincronização em lote foi preservado para cargas administrativas ou contingência. Um agente pode executar esta consulta, montar JSON e enviar por HTTPS:
 
 ```sql
-SELECT idfilial, categoria, idfuncionario, nomefuncionario, login, senha
+SELECT idfilial, categoria, idfuncionario, nomefuncionario, login, senhaweb AS senha
 FROM funcionario
 WHERE status = 'A';
 ```
