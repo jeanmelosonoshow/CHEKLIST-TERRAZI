@@ -43,3 +43,21 @@ export const updateCategoryPermissionsSchema = z.object({
   dashboard: z.boolean(),
   stages: z.boolean(),
 });
+
+export const dashboardScenarioSchema = z.object({
+  title: z.string().trim().min(3).max(160),
+  description: z.string().trim().max(1000).nullish(),
+  visualization: z.enum(["metric", "bar", "donut", "table"]),
+  summarySql: z.string().trim().min(10).max(50_000),
+  detailSql: z.string().trim().max(50_000).nullish(),
+  labelField: z.string().trim().max(100).nullish(),
+  valueField: z.string().trim().min(1).max(100).default("QUANTIDADE"),
+  color: z.string().trim().regex(/^#[0-9a-fA-F]{6}$/),
+  position: z.coerce.number().int().min(0).max(10_000),
+  active: z.boolean().default(true),
+  version: z.coerce.number().int().min(0).default(0),
+});
+
+export const dashboardScenarioPreviewSchema = z.object({
+  sql: z.string().trim().min(10).max(50_000),
+});

@@ -8,16 +8,17 @@ const limiters = redis
   ? {
       login: new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(8, "1 m"), prefix: "ratelimit:login" }),
       sync: new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(30, "1 m"), prefix: "ratelimit:sync" }),
+      dashboard: new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(120, "1 m"), prefix: "ratelimit:dashboard" }),
     }
   : null;
 
 const localAttempts = new Map<string, { count: number; resetAt: number }>();
 
-export async function rateLimit(kind: "login" | "sync", identifier: string) {
+export async function rateLimit(kind: "login" | "sync" | "dashboard", identifier: string) {
   if (limiters) return limiters[kind].limit(identifier);
   const now = Date.now();
   const key = `${kind}:${identifier}`;
-  const max = kind === "login" ? 8 : 30;
+  const max = kind === "login" ? 8 : kind === "sync" ? 30 : 120;
   const current = localAttempts.get(key);
   if (!current || current.resetAt <= now) {
     localAttempts.set(key, { count: 1, resetAt: now + 60_000 });

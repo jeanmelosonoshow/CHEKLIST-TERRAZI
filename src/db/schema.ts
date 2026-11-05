@@ -25,6 +25,12 @@ export const fieldTypeEnum = pgEnum("tipo_campo_lista_verificacao", [
 ]);
 export const checklistStatusEnum = pgEnum("status_lista_verificacao", ["draft", "published", "archived"]);
 export const syncStatusEnum = pgEnum("status_sincronizacao", ["running", "success", "failed"]);
+export const dashboardVisualizationEnum = pgEnum("visualizacao_cenario_dashboard", [
+  "metric",
+  "bar",
+  "donut",
+  "table",
+]);
 
 export const users = pgTable(
   "usuarios",
@@ -164,5 +170,41 @@ export const checklistResponses = pgTable("respostas_lista_verificacao", {
   createdAt: timestamp("criado_em", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("atualizado_em", { withTimezone: true }).defaultNow().notNull(),
 });
+
+export const dashboardScenarios = pgTable(
+  "cenarios_dashboard",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    title: text("titulo").notNull(),
+    description: text("descricao"),
+    visualization: dashboardVisualizationEnum("visualizacao").default("metric").notNull(),
+    summarySql: text("sql_resumo").notNull(),
+    detailSql: text("sql_detalhe"),
+    labelField: text("campo_rotulo"),
+    valueField: text("campo_valor").default("QUANTIDADE").notNull(),
+    color: text("cor").default("#126b50").notNull(),
+    position: integer("posicao").default(0).notNull(),
+    active: boolean("ativo").default(true).notNull(),
+    version: integer("versao").default(1).notNull(),
+    createdBy: uuid("criado_por").notNull().references(() => users.id),
+    updatedBy: uuid("atualizado_por").notNull().references(() => users.id),
+    createdAt: timestamp("criado_em", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("atualizado_em", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [index("cenarios_dashboard_ativo_posicao_idx").on(table.active, table.position)],
+);
+
+export const dashboardScenarioHistory = pgTable(
+  "historico_cenarios_dashboard",
+  {
+    id: bigint("id", { mode: "number" }).generatedAlwaysAsIdentity().primaryKey(),
+    scenarioId: uuid("id_cenario").notNull().references(() => dashboardScenarios.id, { onDelete: "cascade" }),
+    version: integer("versao").notNull(),
+    configuration: jsonb("configuracao").$type<Record<string, unknown>>().notNull(),
+    changedBy: uuid("alterado_por").notNull().references(() => users.id),
+    changedAt: timestamp("alterado_em", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [index("historico_cenarios_dashboard_cenario_versao_idx").on(table.scenarioId, table.version)],
+);
 
 export type User = typeof users.$inferSelect;
