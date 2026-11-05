@@ -47,6 +47,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 textarea { resize: vertical; }
 .primaryButton, .secondaryButton, .textButton, .closeButton, .removeButton { border: 0; cursor: pointer; font-weight: 750; }
 .primaryButton { min-height: 44px; padding: 11px 18px; border-radius: 10px; color: white; background: var(--green); box-shadow: 0 8px 20px rgba(18, 107, 80, .18); }
+.dangerButton { color: var(--danger); border-color: #efc1c1; background: #fffafa; }
 button:disabled { cursor: not-allowed; opacity: .55; }
 .secondaryButton { min-height: 44px; padding: 10px 14px; border: 1px solid var(--line); border-radius: 9px; color: var(--green-dark); background: white; }
 .textButton { min-height: 44px; padding: 7px 10px; color: var(--muted); background: transparent; }
