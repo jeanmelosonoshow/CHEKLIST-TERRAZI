@@ -128,6 +128,8 @@ A migration `0004_codigos_humanos.sql` adiciona códigos numéricos gerados auto
 
 A migration `0007_cenarios_dashboard.sql` cria os cenários configuráveis do dashboard e seu histórico de versões. O administrador pode acessar **Configurar painel**, escolher indicador, barras, rosca ou tabela, testar uma consulta Firebird e cadastrar uma consulta de detalhe aberta pelo clique. O SQL fica somente no PostgreSQL e é executado no servidor pelo SonoShowGateway. As consultas aceitam `:idfilial`, `:idfuncionario`, `:categoria`, `:detalhe_valor`, `:detalhe_campo` e `:detalhe_serie`; esses valores são sempre enviados como parâmetros, nunca concatenados ao SQL.
 
+A migration `0008_formatos_dashboard.sql` adiciona formatos independentes para rótulos e valores dos cenários: texto, inteiro, decimal, Real, percentual, data curta, data por extenso, data e hora, mês/ano, nome do mês e dia da semana. A transformação é somente visual; o valor original continua sendo usado nos parâmetros do detalhamento.
+
 A seção **Etapas** possui permissão própria por categoria e um painel responsivo preparado para apresentar uma linha por filial, venda e cliente. O molde inicial contém Separação, Desmontagem, Impermeabilização, Entrega e Montagem. A persistência operacional ficará desacoplada até que a origem dos selects e a estratégia de salvamento sejam definidas.
 
 O MD5 existe apenas por compatibilidade e não é adequado para novas senhas. Uma fase futura pode migrar gradualmente para Argon2/bcrypt quando a sincronização não sobrescrever mais o valor.

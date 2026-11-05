@@ -57,6 +57,13 @@
       "when": 1793980800000,
       "tag": "0007_cenarios_dashboard",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1794067200000,
+      "tag": "0008_formatos_dashboard",
+      "breakpoints": true
     }
   ]
 }

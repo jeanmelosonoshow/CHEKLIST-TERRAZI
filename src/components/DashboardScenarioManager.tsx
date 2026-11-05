@@ -2,19 +2,37 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import type { DashboardDisplayFormat } from "@/lib/dashboard-format";
 
 type Visualization = "metric" | "bar" | "donut" | "table";
 type Scenario = {
   id: string; title: string; description: string | null; visualization: Visualization;
   summarySql: string; detailSql: string | null; labelField: string | null; valueField: string;
+  labelFormat: DashboardDisplayFormat; valueFormat: DashboardDisplayFormat;
   color: string; position: number; active: boolean; version: number; createdAt: string; updatedAt: string;
 };
 type Draft = Omit<Scenario, "id" | "createdAt" | "updatedAt"> & { id?: string };
 
 const emptyDraft: Draft = {
   title: "", description: "", visualization: "metric", summarySql: "", detailSql: "",
-  labelField: "STATUS", valueField: "QUANTIDADE", color: "#126b50", position: 0, active: true, version: 0,
+  labelField: "STATUS", valueField: "QUANTIDADE", labelFormat: "text", valueFormat: "auto",
+  color: "#126b50", position: 0, active: true, version: 0,
 };
+
+const formatOptions: { value: DashboardDisplayFormat; label: string }[] = [
+  { value: "auto", label: "Automático" },
+  { value: "text", label: "Texto, sem conversão" },
+  { value: "integer", label: "Número inteiro" },
+  { value: "decimal", label: "Decimal — 2 casas" },
+  { value: "currency_brl", label: "Monetário — Real (R$)" },
+  { value: "percent", label: "Percentual — valor entre 0 e 1" },
+  { value: "date_short", label: "Data — 05/11/2026" },
+  { value: "date_long", label: "Data por extenso — 05 de novembro de 2026" },
+  { value: "datetime", label: "Data e hora" },
+  { value: "month_year", label: "Mês e ano — novembro de 2026" },
+  { value: "month_name", label: "Nome do mês — novembro" },
+  { value: "weekday", label: "Dia da semana — quinta-feira" },
+];
 
 export function DashboardScenarioManager({ initialScenarios }: { initialScenarios: Scenario[] }) {
   const router = useRouter();
@@ -67,6 +85,7 @@ export function DashboardScenarioManager({ initialScenarios }: { initialScenario
       <form onSubmit={save}>
         <div className="formGrid"><label>Título<input value={draft.title} onChange={(e) => update("title", e.target.value)} required minLength={3} /></label><label>Descrição<input value={draft.description || ""} onChange={(e) => update("description", e.target.value)} /></label></div>
         <div className="scenarioOptions"><label>Visualização<select value={draft.visualization} onChange={(e) => update("visualization", e.target.value as Visualization)}><option value="metric">Indicador numérico</option><option value="bar">Gráfico de barras</option><option value="donut">Gráfico de rosca</option><option value="table">Tabela resumida</option></select></label><label>Campo de rótulo<input value={draft.labelField || ""} onChange={(e) => update("labelField", e.target.value)} placeholder="Ex.: STATUS" /></label><label>Campo de valor<input value={draft.valueField} onChange={(e) => update("valueField", e.target.value)} placeholder="Ex.: QUANTIDADE" required /></label><label>Cor<input type="color" value={draft.color} onChange={(e) => update("color", e.target.value)} /></label><label>Ordem<input type="number" min={0} value={draft.position} onChange={(e) => update("position", Number(e.target.value))} /></label><label className="checkLabel scenarioActive"><input type="checkbox" checked={draft.active} onChange={(e) => update("active", e.target.checked)} />Ativo</label></div>
+        <div className="scenarioFormatOptions"><label>Formato do rótulo<select value={draft.labelFormat} onChange={(e) => update("labelFormat", e.target.value as DashboardDisplayFormat)}>{formatOptions.map((option) => <option value={option.value} key={option.value}>{option.label}</option>)}</select><small>Aplicado às categorias, datas e nomes exibidos no gráfico.</small></label><label>Formato do valor<select value={draft.valueFormat} onChange={(e) => update("valueFormat", e.target.value as DashboardDisplayFormat)}>{formatOptions.map((option) => <option value={option.value} key={option.value}>{option.label}</option>)}</select><small>Aplicado ao total do card e aos números do gráfico.</small></label></div>
         <label className="sqlField">Consulta do card ou gráfico<textarea rows={9} spellCheck={false} value={draft.summarySql} onChange={(e) => update("summarySql", e.target.value)} required placeholder="SELECT COUNT(*) AS QUANTIDADE FROM VENDA WHERE IDFILIAL = :idfilial" /></label>
         <label className="sqlField">Consulta de detalhe ao clicar — opcional<textarea rows={8} spellCheck={false} value={draft.detailSql || ""} onChange={(e) => update("detailSql", e.target.value)} placeholder="SELECT IDFILIAL, NUMEROVENDA, CLIENTE FROM VENDA WHERE STATUS = :detalhe_valor" /></label>
         <p className="queryHelp">Parâmetros disponíveis: <code>:idfilial</code>, <code>:idfuncionario</code>, <code>:categoria</code>, <code>:detalhe_valor</code>, <code>:detalhe_campo</code> e <code>:detalhe_serie</code>.</p>

@@ -26,6 +26,8 @@ export async function POST(request: Request) {
       detailSql: detailValidation?.sql || null,
       labelField: parsed.data.labelField || null,
       valueField: parsed.data.valueField,
+      labelFormat: parsed.data.labelFormat,
+      valueFormat: parsed.data.valueFormat,
       color: parsed.data.color,
       position: parsed.data.position,
       active: parsed.data.active,

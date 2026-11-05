@@ -31,6 +31,20 @@ export const dashboardVisualizationEnum = pgEnum("visualizacao_cenario_dashboard
   "donut",
   "table",
 ]);
+export const dashboardDisplayFormatEnum = pgEnum("formato_exibicao_dashboard", [
+  "auto",
+  "text",
+  "integer",
+  "decimal",
+  "currency_brl",
+  "percent",
+  "date_short",
+  "date_long",
+  "datetime",
+  "month_year",
+  "month_name",
+  "weekday",
+]);
 
 export const users = pgTable(
   "usuarios",
@@ -182,6 +196,8 @@ export const dashboardScenarios = pgTable(
     detailSql: text("sql_detalhe"),
     labelField: text("campo_rotulo"),
     valueField: text("campo_valor").default("QUANTIDADE").notNull(),
+    labelFormat: dashboardDisplayFormatEnum("formato_rotulo").default("text").notNull(),
+    valueFormat: dashboardDisplayFormatEnum("formato_valor").default("auto").notNull(),
     color: text("cor").default("#126b50").notNull(),
     position: integer("posicao").default(0).notNull(),
     active: boolean("ativo").default(true).notNull(),

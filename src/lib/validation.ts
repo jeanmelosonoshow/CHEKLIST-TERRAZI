@@ -1,5 +1,10 @@
 import { z } from "zod";
 
+const dashboardDisplayFormatSchema = z.enum([
+  "auto", "text", "integer", "decimal", "currency_brl", "percent",
+  "date_short", "date_long", "datetime", "month_year", "month_name", "weekday",
+]);
+
 export const loginSchema = z.object({
   login: z.string().trim().min(1).max(100).transform((value) => value.toLowerCase()),
   password: z.string().min(1).max(256),
@@ -52,6 +57,8 @@ export const dashboardScenarioSchema = z.object({
   detailSql: z.string().trim().max(50_000).nullish(),
   labelField: z.string().trim().max(100).nullish(),
   valueField: z.string().trim().min(1).max(100).default("QUANTIDADE"),
+  labelFormat: dashboardDisplayFormatSchema.default("text"),
+  valueFormat: dashboardDisplayFormatSchema.default("auto"),
   color: z.string().trim().regex(/^#[0-9a-fA-F]{6}$/),
   position: z.coerce.number().int().min(0).max(10_000),
   active: z.boolean().default(true),
