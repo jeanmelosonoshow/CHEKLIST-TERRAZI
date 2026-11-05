@@ -14,7 +14,7 @@ export async function POST(request: Request) {
   const limit = await rateLimit("dashboard", auth.user.id);
   if (!limit.success) return NextResponse.json({ error: "Muitas consultas em sequência. Aguarde um minuto." }, { status: 429 });
   const parsed = optionSourcePreviewSchema.safeParse(await request.json().catch(() => null));
-  if (!parsed.success) return NextResponse.json({ error: "Revise a consulta e os campos de retorno." }, { status: 400 });
+  if (!parsed.success) return NextResponse.json({ error: parsed.error.issues[0]?.message || "Revise a consulta e os campos de retorno.", details: parsed.error.flatten() }, { status: 400 });
   if (parsed.data.querySql) {
     const validation = validateDashboardQuery(parsed.data.querySql);
     if (!validation.valid) return NextResponse.json({ error: validation.error }, { status: 400 });
@@ -30,6 +30,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ options: options.slice(0, 20), totalPreview: Math.min(options.length, 20) });
   } catch (error) {
     const status = error instanceof Error && "status" in error ? Number(error.status) || 500 : 500;
-    return NextResponse.json({ error: status >= 500 ? "Não foi possível executar a consulta da fonte." : (error as Error).message }, { status });
+    return NextResponse.json({ error: error instanceof Error ? error.message : "Não foi possível executar a consulta da fonte." }, { status });
   }
 }

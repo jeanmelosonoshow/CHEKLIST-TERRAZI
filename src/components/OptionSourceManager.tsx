@@ -29,7 +29,8 @@ export function OptionSourceManager({ initialSources }: { initialSources: Source
   async function previewSource() {
     if (!draft) return;
     setWorking(true); setMessage(""); setPreview(null);
-    const response = await fetch("/api/admin/option-sources/preview", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(draft) });
+    const payload = { ...draft, staticOptions: draft.sourceType === "static" ? draft.staticOptions : [] };
+    const response = await fetch("/api/admin/option-sources/preview", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(payload) });
     const body = await response.json().catch(() => ({})); setWorking(false);
     if (!response.ok) { setMessage(body.error || "Não foi possível testar a fonte."); return; }
     setPreview(body.options || []); setMessage("Fonte validada com sucesso.");
@@ -37,7 +38,8 @@ export function OptionSourceManager({ initialSources }: { initialSources: Source
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); if (!draft) return;
     setWorking(true); setMessage("");
-    const response = await fetch(draft.editing ? `/api/admin/option-sources/${draft.key}` : "/api/admin/option-sources", { method: draft.editing ? "PUT" : "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(draft) });
+    const payload = { ...draft, staticOptions: draft.sourceType === "static" ? draft.staticOptions : [] };
+    const response = await fetch(draft.editing ? `/api/admin/option-sources/${draft.key}` : "/api/admin/option-sources", { method: draft.editing ? "PUT" : "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(payload) });
     const body = await response.json().catch(() => ({})); setWorking(false);
     if (!response.ok) { setMessage(body.error || "Não foi possível salvar a fonte."); return; }
     setDraft(null); router.refresh();
