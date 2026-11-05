@@ -27,6 +27,10 @@ export const checklistStatusEnum = pgEnum("status_lista_verificacao", ["draft", 
 export const syncStatusEnum = pgEnum("status_sincronizacao", ["running", "success", "failed"]);
 export const optionSourceTypeEnum = pgEnum("tipo_fonte_opcoes", ["synchronized", "static", "postgres", "firebird"]);
 export const checklistExecutionStatusEnum = pgEnum("status_execucao_checklist", ["pending", "in_progress", "completed", "cancelled"]);
+export const checklistFlowNodeTypeEnum = pgEnum("tipo_no_fluxo_checklist", ["start", "question", "automatic_decision", "action", "observation", "end"]);
+export const checklistFlowConditionEnum = pgEnum("condicao_fluxo_checklist", ["always", "equals", "not_equals"]);
+export const checklistFlowOutcomeEnum = pgEnum("resultado_fluxo_checklist", ["success", "failure"]);
+export const checklistAutomationSourceEnum = pgEnum("origem_automacao_checklist", ["postgres", "firebird"]);
 export const dashboardVisualizationEnum = pgEnum("visualizacao_cenario_dashboard", [
   "metric",
   "bar",
@@ -181,6 +185,49 @@ export const checklistFieldOptions = pgTable(
   (table) => [index("opcoes_campo_lista_verificacao_ordem_idx").on(table.fieldId, table.position)],
 );
 
+export const checklistFlowNodes = pgTable(
+  "nos_fluxo_checklist",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    code: bigint("codigo", { mode: "number" }).generatedAlwaysAsIdentity().notNull().unique(),
+    checklistId: uuid("id_lista_verificacao").notNull().references(() => checklists.id, { onDelete: "cascade" }),
+    nodeKey: text("chave_no").notNull(),
+    type: checklistFlowNodeTypeEnum("tipo").notNull(),
+    title: text("titulo").notNull(),
+    description: text("descricao"),
+    fieldType: fieldTypeEnum("tipo_campo"),
+    required: boolean("obrigatorio").default(false).notNull(),
+    sourceKey: text("chave_fonte").references(() => syncedSources.key),
+    automationSource: checklistAutomationSourceEnum("origem_automacao"),
+    querySql: text("sql_consulta"),
+    resultField: text("campo_resultado").default("RESULTADO").notNull(),
+    outcome: checklistFlowOutcomeEnum("resultado_final"),
+    position: integer("posicao").notNull(),
+    configuration: jsonb("configuracao").$type<Record<string, unknown>>().default({}).notNull(),
+    createdAt: timestamp("criado_em", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("atualizado_em", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("nos_fluxo_checklist_chave_idx").on(table.checklistId, table.nodeKey),
+    index("nos_fluxo_checklist_ordem_idx").on(table.checklistId, table.position),
+  ],
+);
+
+export const checklistFlowEdges = pgTable(
+  "conexoes_fluxo_checklist",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    checklistId: uuid("id_lista_verificacao").notNull().references(() => checklists.id, { onDelete: "cascade" }),
+    sourceNodeId: uuid("id_no_origem").notNull().references(() => checklistFlowNodes.id, { onDelete: "cascade" }),
+    targetNodeId: uuid("id_no_destino").notNull().references(() => checklistFlowNodes.id, { onDelete: "cascade" }),
+    condition: checklistFlowConditionEnum("condicao").default("always").notNull(),
+    conditionValue: jsonb("valor_condicao").$type<unknown>(),
+    label: text("rotulo"),
+    priority: integer("prioridade").default(0).notNull(),
+  },
+  (table) => [index("conexoes_fluxo_checklist_origem_idx").on(table.sourceNodeId, table.priority)],
+);
+
 export const checklistExecutions = pgTable(
   "execucoes_checklist",
   {
@@ -191,6 +238,8 @@ export const checklistExecutions = pgTable(
     saleNumber: text("numero_venda").notNull(),
     customerName: text("nome_cliente"),
     status: checklistExecutionStatusEnum("status").default("pending").notNull(),
+    currentNodeId: uuid("id_no_atual").references(() => checklistFlowNodes.id),
+    outcome: checklistFlowOutcomeEnum("resultado"),
     assignedTo: uuid("atribuido_a").notNull().references(() => users.id),
     createdBy: uuid("criado_por").notNull().references(() => users.id),
     startedAt: timestamp("iniciado_em", { withTimezone: true }),
@@ -204,6 +253,22 @@ export const checklistExecutions = pgTable(
     uniqueIndex("execucoes_checklist_ativa_venda_idx").on(table.checklistId, table.branchId, table.saleNumber)
       .where(sql`${table.status} in ('pending', 'in_progress')`),
   ],
+);
+
+export const checklistFlowSteps = pgTable(
+  "passos_execucao_fluxo_checklist",
+  {
+    id: bigint("id", { mode: "number" }).generatedAlwaysAsIdentity().primaryKey(),
+    executionId: uuid("id_execucao").notNull().references(() => checklistExecutions.id, { onDelete: "cascade" }),
+    nodeId: uuid("id_no").notNull().references(() => checklistFlowNodes.id),
+    answer: jsonb("resposta").$type<unknown>(),
+    observation: text("observacao"),
+    automatic: boolean("automatico").default(false).notNull(),
+    nextNodeId: uuid("id_proximo_no").references(() => checklistFlowNodes.id),
+    userId: uuid("id_usuario").notNull().references(() => users.id),
+    createdAt: timestamp("criado_em", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [index("passos_execucao_fluxo_execucao_idx").on(table.executionId, table.createdAt)],
 );
 
 export const checklistResponses = pgTable(

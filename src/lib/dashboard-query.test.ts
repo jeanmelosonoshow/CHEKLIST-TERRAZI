@@ -22,4 +22,11 @@ describe("dashboard query", () => {
       params: ["01", "A"],
     });
   });
+
+  it("parameterizes the sale number used by automatic flow decisions", () => {
+    expect(prepareDashboardQuery(
+      "SELECT IMPERMEABILIZACAO AS RESULTADO FROM VENDA WHERE IDFILIAL = :idfilial AND NUMEROVENDA = :numero_venda",
+      { branchId: "20", employeeId: 752, category: "ADMIN", saleNumber: "12345" },
+    ).params).toEqual(["20", "12345"]);
+  });
 });

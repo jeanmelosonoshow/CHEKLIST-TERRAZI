@@ -237,6 +237,62 @@ button.dashboardWidget:disabled { cursor: default; opacity: 1; }
 .booleanChoices, .multiChoices { display: flex; flex-wrap: wrap; gap: 9px; }
 .booleanChoices label, .multiChoices label { display: flex; min-height: 42px; padding: 9px 12px; align-items: center; gap: 8px; border: 1px solid var(--line); border-radius: 9px; background: var(--paper); cursor: pointer; }
 .booleanChoices input, .multiChoices input { width: 18px; height: 18px; margin: 0; accent-color: var(--green); }
+.flowModalBackdrop { padding: 18px; }
+.flowBuilder { width: min(1500px, 100%); max-height: calc(100dvh - 36px); }
+.flowIdentity { margin: 20px 0; }
+.flowDesigner { overflow: hidden; border: 1px solid var(--line); border-radius: 15px; background: #f7faf8; }
+.flowToolbar { display: flex; min-height: 58px; padding: 9px 12px; align-items: center; flex-wrap: wrap; gap: 8px; border-bottom: 1px solid var(--line); background: var(--paper); }
+.flowToolbar strong { margin-right: 8px; font-size: .75rem; text-transform: uppercase; }
+.flowToolbar button, .flowConnections button { min-height: 36px; padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; color: var(--green-dark); background: var(--paper); cursor: pointer; font-size: .72rem; font-weight: 750; }
+.flowWorkspace { display: grid; min-height: 570px; grid-template-columns: minmax(600px, 1fr) 410px; }
+.flowCanvas { padding: 20px; overflow: auto; border-right: 1px solid var(--line); background-image: radial-gradient(#ccd8d2 1px, transparent 1px); background-size: 18px 18px; }
+.flowCanvasHeader { display: flex; margin-bottom: 20px; padding: 14px; align-items: center; justify-content: space-between; gap: 20px; border: 1px solid var(--line); border-radius: 11px; background: rgba(255,255,255,.94); }
+.flowCanvasHeader h3, .flowCanvasHeader p { margin: 0; }
+.flowCanvasHeader p, .flowCanvasHeader span { color: var(--muted); font-size: .7rem; }
+.flowNodeGrid { display: grid; grid-template-columns: repeat(3, minmax(180px, 1fr)); align-items: stretch; gap: 18px 28px; }
+.flowNode { position: relative; display: flex; min-height: 128px; padding: 16px; overflow: hidden; flex-direction: column; align-items: flex-start; gap: 7px; border: 2px solid transparent; border-radius: 13px; color: var(--ink); background: var(--paper); box-shadow: 0 8px 22px rgba(20,50,38,.08); cursor: pointer; text-align: left; }
+.flowNode::after { position: absolute; right: -16px; top: calc(50% - 5px); width: 10px; height: 10px; border-radius: 50%; background: var(--green); content: ""; }
+.flowNode.selected { border-color: var(--green); box-shadow: 0 0 0 3px rgba(18,107,80,.12); }
+.flowNode small { color: var(--green); font-size: .62rem; font-weight: 850; letter-spacing: .07em; text-transform: uppercase; }
+.flowNode strong { font-size: .86rem; line-height: 1.35; }
+.flowNode span { margin-top: auto; color: var(--muted); font-size: .66rem; }
+.flowNode-automatic_decision { border-left: 5px solid #4b76a8; }
+.flowNode-action { border-left: 5px solid #b48025; }
+.flowNode-observation { border-left: 5px solid #7961a8; }
+.flowNode-end { border-left: 5px solid var(--green); }
+.flowNode .flowWarning { color: var(--danger); }
+.flowInspector { padding: 20px; overflow-y: auto; background: var(--paper); }
+.flowInspector > label, .flowInspector > .formGrid { margin-bottom: 15px; }
+.flowInspectorHeader { display: flex; margin-bottom: 18px; justify-content: space-between; gap: 12px; }
+.flowInspectorHeader h3 { margin: 2px 0 0; }
+.flowInspectorHeader small { color: var(--green); font-size: .65rem; font-weight: 800; text-transform: uppercase; }
+.flowInspectorHeader button { width: 36px; height: 36px; border: 1px solid var(--line); color: var(--green); background: white; cursor: pointer; }
+.flowCheck { display: flex; align-items: center; grid-template-columns: auto 1fr; }
+.flowCheck input { width: 18px; }
+.flowSql { font: 12px/1.5 Consolas, monospace; }
+.flowConnections { margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--line); }
+.flowConnections .fieldsTitle { margin: 0 0 12px; }
+.flowConnection { display: grid; margin-bottom: 10px; padding: 12px; grid-template-columns: 1fr 1fr; gap: 9px; border: 1px solid var(--line); border-radius: 10px; background: #fafcfb; }
+.flowConnection .removeButton { grid-column: 2; justify-self: end; }
+.flowRemoveNode { width: 100%; margin-top: 18px; }
+.flowExecution { margin-top: 22px; }
+.flowExecutionTimeline { display: grid; margin-bottom: 18px; gap: 8px; }
+.flowExecutionTimeline > div { display: flex; padding: 10px 12px; align-items: center; gap: 10px; border-radius: 10px; background: #f4f7f5; }
+.flowExecutionTimeline i { display: grid; width: 24px; height: 24px; flex: 0 0 24px; place-items: center; border-radius: 50%; color: white; background: var(--green); font-size: .68rem; font-style: normal; }
+.flowExecutionTimeline strong, .flowExecutionTimeline small { display: block; }
+.flowExecutionTimeline strong { font-size: .76rem; }
+.flowExecutionTimeline small { margin-top: 2px; color: var(--muted); font-size: .65rem; }
+.flowCurrentStep { padding: clamp(18px, 4vw, 30px); border: 1px solid var(--line); border-radius: 15px; background: #fafcfb; }
+.flowCurrentStep > h3 { font-size: clamp(1.25rem, 4vw, 1.8rem); }
+.flowCurrentStep .executionField { padding: 0; border: 0; background: transparent; }
+.automaticDecision { display: flex; margin-top: 18px; padding: 16px; align-items: center; gap: 12px; border-radius: 11px; color: #315472; background: #e9f3fa; }
+.automaticDecision span { font-size: 1.4rem; }
+.automaticDecision p { margin: 0; font-size: .8rem; }
+.flowOutcome { display: grid; min-height: 260px; padding: 30px; place-items: center; align-content: center; border-radius: 15px; text-align: center; background: var(--mint); }
+.flowOutcome.failure { color: #793b3b; background: #fbe2e2; }
+.flowOutcome > span { display: grid; width: 54px; height: 54px; margin-bottom: 15px; place-items: center; border-radius: 50%; color: white; background: var(--green); font-size: 1.4rem; }
+.flowOutcome.failure > span { background: var(--danger); }
+.flowOutcome p { margin: 0; color: var(--muted); }
 @media (hover: hover) {
   .primaryButton:hover { background: var(--green-dark); }
   .secondaryButton:hover { border-color: #a9bbb2; background: #f8fbf9; }
@@ -252,6 +308,8 @@ button.dashboardWidget:disabled { cursor: default; opacity: 1; }
   .scenarioOptions { grid-template-columns: repeat(3, 1fr); }
   .executionGrid { grid-template-columns: repeat(2, 1fr); }
   .sourceFormGrid { grid-template-columns: 1fr 1fr; }
+  .flowWorkspace { grid-template-columns: minmax(480px, 1fr) 360px; }
+  .flowNodeGrid { grid-template-columns: repeat(2, minmax(180px, 1fr)); }
 }
 @media (max-width: 820px) {
   .loginPage { grid-template-columns: 1fr; }
@@ -292,6 +350,7 @@ button.dashboardWidget:disabled { cursor: default; opacity: 1; }
   .donutChart::before { width: 82px; height: 82px; }
   .executionGrid { grid-template-columns: 1fr; }
   .sourceFormGrid { grid-template-columns: 1fr 1fr; }
+  .flowExecutionTimeline { max-height: 180px; overflow-y: auto; }
 }
 @media (max-width: 700px) {
   .responsiveTable { overflow: visible; border: 0; background: transparent; }

@@ -2,7 +2,7 @@ import { asc, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/db";
-import { checklistExecutionEvents, checklistExecutions, checklistFieldOptions, checklistFields, checklistResponses, checklists } from "@/db/schema";
+import { checklistExecutionEvents, checklistExecutions, checklistFieldOptions, checklistFields, checklistFlowNodes, checklistFlowSteps, checklistResponses, checklists } from "@/db/schema";
 import { getApiPermission } from "@/lib/api-auth";
 import { validateChecklistAnswers } from "@/lib/checklist-execution";
 import { getOptionSource, resolveOptionSource } from "@/lib/option-sources";
@@ -29,6 +29,19 @@ export async function GET(_request: Request, context: { params: Promise<{ id: st
   const loaded = await loadExecution(id.data);
   if (!loaded) return NextResponse.json({ error: "Execução não encontrada." }, { status: 404 });
   if (!canAccess(auth.user, loaded.execution.branchId)) return NextResponse.json({ error: "Sem acesso a esta execução." }, { status: 403 });
+  const flowNodes = await db.select({ id: checklistFlowNodes.id }).from(checklistFlowNodes).where(eq(checklistFlowNodes.checklistId, loaded.checklist.id)).limit(1);
+  if (flowNodes.length) {
+    const [current] = loaded.execution.currentNodeId ? await db.select().from(checklistFlowNodes).where(eq(checklistFlowNodes.id, loaded.execution.currentNodeId)).limit(1) : [];
+    const steps = await db.select({ id: checklistFlowSteps.id, answer: checklistFlowSteps.answer, observation: checklistFlowSteps.observation, automatic: checklistFlowSteps.automatic, createdAt: checklistFlowSteps.createdAt, nodeId: checklistFlowNodes.id, nodeTitle: checklistFlowNodes.title, nodeType: checklistFlowNodes.type })
+      .from(checklistFlowSteps).innerJoin(checklistFlowNodes, eq(checklistFlowSteps.nodeId, checklistFlowNodes.id))
+      .where(eq(checklistFlowSteps.executionId, loaded.execution.id)).orderBy(asc(checklistFlowSteps.createdAt));
+    let options: Array<{ value: string; label: string }> = [];
+    if (current?.sourceKey) {
+      const source = await getOptionSource(current.sourceKey);
+      options = source && source.active ? await resolveOptionSource(source, { ...auth.user, branchId: loaded.execution.branchId }) : [];
+    }
+    return NextResponse.json({ flow: true, execution: loaded.execution, checklist: loaded.checklist, currentNode: current ? { ...current, options } : null, steps });
+  }
   const fields = await db.select().from(checklistFields).where(eq(checklistFields.checklistId, loaded.checklist.id)).orderBy(asc(checklistFields.position));
   const [response] = await db.select().from(checklistResponses).where(eq(checklistResponses.executionId, loaded.execution.id)).limit(1);
   const hydratedFields = await Promise.all(fields.map(async (field) => {

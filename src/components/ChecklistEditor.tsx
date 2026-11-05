@@ -3,78 +3,25 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { formatHumanCode } from "@/lib/human-code";
+import type { FlowDefinition, FlowFieldType } from "@/lib/checklist-flow";
+import { ChecklistFlowDesigner, createDefaultFlow } from "./ChecklistFlowDesigner";
 
-type Field = { id?: string; code?: number; label: string; type: "short_text" | "long_text" | "number" | "date" | "boolean" | "single_select" | "multi_select"; required: boolean; sourceKey: string | null };
-type ChecklistData = { code: number; title: string; description: string | null; fields: Field[] };
-const types = [
-  ["short_text", "Texto curto"], ["long_text", "Texto longo"], ["number", "Número"], ["date", "Data"], ["boolean", "Sim / Não"], ["single_select", "Seleção única"], ["multi_select", "Seleção múltipla"],
-] as const;
+type LegacyField = { id?: string; label: string; type: FlowFieldType; required: boolean; sourceKey: string | null };
+type ChecklistData = { code: number; title: string; description: string | null; fields: LegacyField[]; flow: FlowDefinition | null };
+
+function convertLegacy(fields: LegacyField[]): FlowDefinition {
+  if (!fields.length) return createDefaultFlow();
+  const nodes: FlowDefinition["nodes"] = [{ nodeKey: "inicio", type: "start", title: "Início", position: 0 }, ...fields.map((field, index) => ({ nodeKey: `campo_${index + 1}`, type: "question" as const, title: field.label, fieldType: field.type, required: field.required, sourceKey: field.sourceKey, position: index + 1 })), { nodeKey: "final_sucesso", type: "end", title: "Finalizado com sucesso", outcome: "success", position: fields.length + 1 }];
+  const sequence = nodes.map((node) => node.nodeKey);
+  return { nodes, edges: sequence.slice(0, -1).map((sourceKey, index) => ({ sourceKey, targetKey: sequence[index + 1], condition: "always", label: index ? "Próximo" : "Começar", priority: 0 })) };
+}
 
 export function ChecklistEditor({ checklistId, sources }: { checklistId: string; sources: { key: string; label: string }[] }) {
-  const router = useRouter();
-  const [data, setData] = useState<ChecklistData | null>(null);
-  const [message, setMessage] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const headingRef = useRef<HTMLHeadingElement>(null);
-  const savingRef = useRef(saving);
-  const isOpen = Boolean(data);
-
+  const router = useRouter(); const [data, setData] = useState<ChecklistData | null>(null); const [message, setMessage] = useState(""); const [loading, setLoading] = useState(false); const [saving, setSaving] = useState(false);
+  const headingRef = useRef<HTMLHeadingElement>(null); const savingRef = useRef(saving);
   useEffect(() => { savingRef.current = saving; }, [saving]);
-
-  useEffect(() => {
-    if (!isOpen) return;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    headingRef.current?.focus();
-    const closeOnEscape = (event: KeyboardEvent) => { if (event.key === "Escape" && !savingRef.current) setData(null); };
-    window.addEventListener("keydown", closeOnEscape);
-    return () => { document.body.style.overflow = previousOverflow; window.removeEventListener("keydown", closeOnEscape); };
-  }, [isOpen]);
-
-  async function open() {
-    setLoading(true); setMessage("");
-    const response = await fetch(`/api/admin/checklists/${checklistId}`);
-    const body = await response.json().catch(() => ({}));
-    setLoading(false);
-    if (!response.ok) { setMessage(body.error || "Não foi possível abrir o checklist."); return; }
-    setData(body.checklist);
-  }
-
-  function update(index: number, patch: Partial<Field>) {
-    setData((current) => current ? { ...current, fields: current.fields.map((field, i) => i === index ? { ...field, ...patch } : field) } : current);
-  }
-
-  async function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!data) return;
-    setSaving(true); setMessage("");
-    const form = new FormData(event.currentTarget);
-    const response = await fetch(`/api/admin/checklists/${checklistId}`, {
-      method: "PUT",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ title: form.get("title"), description: form.get("description"), fields: data.fields }),
-    });
-    const body = await response.json().catch(() => ({}));
-    setSaving(false);
-    if (!response.ok) { setMessage(body.error || "Não foi possível salvar."); return; }
-    setData(null); router.refresh();
-  }
-
-  return <>
-    <button className="secondaryButton" disabled={loading} onClick={open}>{loading ? "Abrindo…" : "Editar"}</button>
-    {!data && message && <small className="formError" role="alert">{message}</small>}
-    {data && <div className="modalBackdrop" role="presentation">
-      <section className="builder" role="dialog" aria-modal="true" aria-labelledby={`edit-${checklistId}`}>
-        <div className="builderHeader"><div><p className="eyebrow">RASCUNHO · {formatHumanCode("CHK", data.code)}</p><h2 id={`edit-${checklistId}`} ref={headingRef} tabIndex={-1}>Editar checklist</h2></div><button className="closeButton" onClick={() => setData(null)} aria-label="Fechar edição do checklist">×</button></div>
-        <form onSubmit={submit}>
-          <div className="formGrid"><label>Título<input name="title" defaultValue={data.title} minLength={3} required /></label><label>Descrição<textarea name="description" defaultValue={data.description || ""} rows={2} /></label></div>
-          <div className="fieldsTitle"><div><h3>Perguntas e campos</h3><p>A edição é permitida somente enquanto o checklist estiver em rascunho.</p></div><button type="button" className="secondaryButton" onClick={() => setData((current) => current ? { ...current, fields: [...current.fields, { label: "", type: "short_text", required: false, sourceKey: null }] } : current)}>+ Adicionar campo</button></div>
-          <div className="fieldList">{data.fields.map((field, index) => <div className="fieldRow" key={field.id ?? `new-${index}`}><span className="fieldNumber" title={field.code ? formatHumanCode("CMP", field.code) : "Campo ainda não salvo"}>{index + 1}</span><label className="fieldLabel">Pergunta{field.code && <small className="fieldCode">{formatHumanCode("CMP", field.code)}</small>}<input value={field.label} onChange={(event) => update(index, { label: event.target.value })} required /></label><label className="typeField">Tipo<select value={field.type} onChange={(event) => update(index, { type: event.target.value as Field["type"], sourceKey: null })}>{types.map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>{(field.type === "single_select" || field.type === "multi_select") && <label className="sourceField">Fonte<select value={field.sourceKey || ""} onChange={(event) => update(index, { sourceKey: event.target.value || null })}><option value="">Selecione uma fonte</option>{sources.map((source) => <option value={source.key} key={source.key}>{source.label}</option>)}</select></label>}<label className="checkLabel"><input type="checkbox" checked={field.required} onChange={(event) => update(index, { required: event.target.checked })} />Obrigatório</label><button type="button" className="removeButton" disabled={data.fields.length === 1} onClick={() => setData((current) => current ? { ...current, fields: current.fields.filter((_, i) => i !== index) } : current)} aria-label={`Remover campo ${index + 1}`}>×</button></div>)}</div>
-          {message && <p className="formError" role="alert">{message}</p>}
-          <div className="builderActions"><button type="button" className="textButton" onClick={() => setData(null)}>Cancelar</button><button className="primaryButton" disabled={saving}>{saving ? "Salvando…" : "Salvar alterações"}</button></div>
-        </form>
-      </section>
-    </div>}
-  </>;
+  useEffect(() => { if (!data) return; const previous = document.body.style.overflow; document.body.style.overflow = "hidden"; headingRef.current?.focus(); const escape = (event: KeyboardEvent) => { if (event.key === "Escape" && !savingRef.current) setData(null); }; window.addEventListener("keydown", escape); return () => { document.body.style.overflow = previous; window.removeEventListener("keydown", escape); }; }, [data]);
+  async function open() { setLoading(true); setMessage(""); const response = await fetch(`/api/admin/checklists/${checklistId}`); const body = await response.json().catch(() => ({})); setLoading(false); if (!response.ok) { setMessage(body.error || "Não foi possível abrir o checklist."); return; } const checklist = body.checklist as ChecklistData; setData({ ...checklist, flow: checklist.flow || convertLegacy(checklist.fields) }); }
+  async function submit(event: FormEvent<HTMLFormElement>) { event.preventDefault(); if (!data?.flow) return; setSaving(true); setMessage(""); const form = new FormData(event.currentTarget); const response = await fetch(`/api/admin/checklists/${checklistId}`, { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ title: form.get("title"), description: form.get("description"), fields: [], flow: data.flow }) }); const body = await response.json().catch(() => ({})); setSaving(false); if (!response.ok) { setMessage(body.error || "Não foi possível salvar o fluxo."); return; } setData(null); router.refresh(); }
+  return <><button className="secondaryButton" disabled={loading} onClick={open}>{loading ? "Abrindo…" : "Editar fluxo"}</button>{!data && message && <small className="formError">{message}</small>}{data?.flow && <div className="modalBackdrop flowModalBackdrop"><section className="builder flowBuilder" role="dialog" aria-modal="true"><div className="builderHeader"><div><p className="eyebrow">RASCUNHO · {formatHumanCode("CHK", data.code)}</p><h2 ref={headingRef} tabIndex={-1}>Editar fluxo</h2></div><button className="closeButton" onClick={() => setData(null)} aria-label="Fechar">×</button></div><form onSubmit={submit}><div className="formGrid flowIdentity"><label>Nome do fluxo<input name="title" defaultValue={data.title} required /></label><label>Descrição<textarea name="description" rows={2} defaultValue={data.description || ""} /></label></div><ChecklistFlowDesigner value={data.flow} onChange={(flow) => setData((current) => current ? { ...current, flow } : current)} sources={sources} />{message && <p className="formError">{message}</p>}<div className="builderActions"><button type="button" className="textButton" onClick={() => setData(null)}>Cancelar</button><button className="primaryButton" disabled={saving}>{saving ? "Salvando…" : "Salvar alterações"}</button></div></form></section></div>}</>;
 }

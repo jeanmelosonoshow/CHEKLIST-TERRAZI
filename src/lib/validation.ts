@@ -31,11 +31,34 @@ const fieldSchema = z.object({
   sourceKey: z.string().trim().min(1).max(100).nullable().optional(),
 });
 
+const flowNodeSchema = z.object({
+  id: z.string().uuid().optional(),
+  nodeKey: z.string().trim().regex(/^[a-z0-9][a-z0-9_-]{1,99}$/),
+  type: z.enum(["start", "question", "automatic_decision", "action", "observation", "end"]),
+  title: z.string().trim().min(1).max(200),
+  description: z.string().trim().max(1000).nullish(),
+  fieldType: z.enum(["short_text", "long_text", "number", "date", "boolean", "single_select", "multi_select"]).nullish(),
+  required: z.boolean().default(false),
+  sourceKey: z.string().trim().min(1).max(100).nullish(),
+  automationSource: z.enum(["postgres", "firebird"]).nullish(),
+  querySql: z.string().trim().max(50_000).nullish(),
+  resultField: z.string().trim().min(1).max(100).default("RESULTADO"),
+  outcome: z.enum(["success", "failure"]).nullish(),
+  position: z.coerce.number().int().min(0).max(10_000),
+});
+const flowEdgeSchema = z.object({
+  sourceKey: z.string().trim().min(2).max(100), targetKey: z.string().trim().min(2).max(100),
+  condition: z.enum(["always", "equals", "not_equals"]), conditionValue: z.unknown().optional(),
+  label: z.string().trim().max(120).nullish(), priority: z.coerce.number().int().min(0).max(1000),
+});
+export const checklistFlowSchema = z.object({ nodes: z.array(flowNodeSchema).min(2).max(200), edges: z.array(flowEdgeSchema).min(1).max(500) });
+
 export const createChecklistSchema = z.object({
   title: z.string().trim().min(3).max(160),
   description: z.string().trim().max(1000).optional(),
-  fields: z.array(fieldSchema).min(1).max(100),
-});
+  fields: z.array(fieldSchema).max(100).default([]),
+  flow: checklistFlowSchema.optional(),
+}).superRefine((value, context) => { if (!value.flow && !value.fields.length) context.addIssue({ code: "custom", path: ["fields"], message: "Inclua perguntas ou configure um fluxo." }); });
 
 export const updateChecklistSchema = createChecklistSchema;
 
@@ -132,4 +155,10 @@ export const startChecklistExecutionSchema = z.object({
 export const saveChecklistExecutionSchema = z.object({
   answers: z.record(z.string().uuid(), z.unknown()),
   complete: z.boolean().default(false),
+});
+
+export const advanceChecklistFlowSchema = z.object({
+  nodeId: z.string().uuid(),
+  answer: z.unknown().optional(),
+  observation: z.string().trim().max(5000).nullish(),
 });

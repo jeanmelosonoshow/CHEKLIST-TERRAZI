@@ -1,7 +1,7 @@
 import { and, eq, inArray } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { db } from "@/db";
-import { checklistExecutionEvents, checklistExecutions, checklistResponses, checklists } from "@/db/schema";
+import { checklistExecutionEvents, checklistExecutions, checklistFlowEdges, checklistFlowNodes, checklistResponses, checklists } from "@/db/schema";
 import { getApiPermission } from "@/lib/api-auth";
 import { isAdministrator } from "@/lib/permissions";
 import { startChecklistExecutionSchema } from "@/lib/validation";
@@ -19,12 +19,20 @@ export async function POST(request: Request) {
     eq(checklistExecutions.saleNumber, parsed.data.saleNumber), inArray(checklistExecutions.status, ["pending", "in_progress"]),
   )).limit(1);
   if (existing) return NextResponse.json({ error: "Já existe uma execução pendente deste checklist para a venda.", executionId: existing.id }, { status: 409 });
+  const [startNode] = await db.select({ id: checklistFlowNodes.id }).from(checklistFlowNodes).where(and(eq(checklistFlowNodes.checklistId, checklist.id), eq(checklistFlowNodes.type, "start"))).limit(1);
+  let currentNodeId: string | null = null;
+  if (startNode) {
+    const [firstEdge] = await db.select({ targetNodeId: checklistFlowEdges.targetNodeId }).from(checklistFlowEdges)
+      .where(eq(checklistFlowEdges.sourceNodeId, startNode.id)).orderBy(checklistFlowEdges.priority).limit(1);
+    if (!firstEdge) return NextResponse.json({ error: "O fluxo publicado não possui uma saída a partir do início." }, { status: 409 });
+    currentNodeId = firstEdge.targetNodeId;
+  }
   let execution;
   try {
     execution = await db.transaction(async (tx) => {
       const [created] = await tx.insert(checklistExecutions).values({
         checklistId: checklist.id, branchId: parsed.data.branchId, saleNumber: parsed.data.saleNumber,
-        customerName: parsed.data.customerName || null, assignedTo: auth.user.id, createdBy: auth.user.id,
+        customerName: parsed.data.customerName || null, assignedTo: auth.user.id, createdBy: auth.user.id, currentNodeId,
       }).returning();
       await tx.insert(checklistResponses).values({ checklistId: checklist.id, executionId: created.id, userId: auth.user.id, answers: {} });
       await tx.insert(checklistExecutionEvents).values({ executionId: created.id, event: "created", userId: auth.user.id, data: { branchId: created.branchId, saleNumber: created.saleNumber } });
