@@ -12,6 +12,7 @@ import {
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 
 export const fieldTypeEnum = pgEnum("tipo_campo_lista_verificacao", [
   "short_text",
@@ -44,7 +45,7 @@ export const users = pgTable(
   },
   (table) => [
     uniqueIndex("usuarios_id_funcionario_idx").on(table.employeeId),
-    uniqueIndex("usuarios_login_idx").on(table.login),
+    uniqueIndex("usuarios_login_idx").on(sql`lower(${table.login})`),
     index("usuarios_ativo_idx").on(table.active),
   ],
 );

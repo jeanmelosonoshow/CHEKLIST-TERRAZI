@@ -2,6 +2,8 @@
 
 Primeira fase da plataforma responsiva de controle de processos e checklists. O projeto usa Next.js com TypeScript, PostgreSQL Neon, sessões server-side e Upstash Redis opcional para rate limiting distribuído.
 
+O SonoShowGateway é a origem direta da autenticação e dos dados oficiais de vendas e clientes. O PostgreSQL armazena o estado operacional criado pela aplicação — permissões, sessões, checklists, follow-ups, agenda, alertas e histórico — sem substituir o Firebird como sistema de origem. Consulte `docs/ARQUITETURA_DADOS_COMERCIAIS.md`.
+
 ## O que está pronto
 
 - Login validado em tempo real no Firebird por meio do Gateway HTTPS assinado, com compatibilidade com o MD5 lowercase do legado.
@@ -17,7 +19,7 @@ Primeira fase da plataforma responsiva de controle de processos e checklists. O 
 
 ## Requisitos e instalação local
 
-- Node.js 20 ou superior
+- Node.js 20.19 ou superior
 - PostgreSQL (Neon recomendado)
 - Upstash Redis opcional em desenvolvimento e recomendado em produção
 
@@ -32,7 +34,7 @@ npm run db:migrate
 npm run dev
 ```
 
-A aplicação estará em `http://localhost:3000`. No primeiro login válido, o usuário retornado pelo Gateway é criado ou atualizado no Neon automaticamente.
+A aplicação estará em `http://localhost:3000`. No primeiro login válido, o usuário retornado pelo Gateway é criado ou atualizado no Neon automaticamente. O endpoint `GET /api/health` verifica PostgreSQL, SonoShowGateway e, quando configurado, Redis; ele responde `503` se uma dependência necessária estiver indisponível.
 
 ## Variáveis de ambiente
 
@@ -61,7 +63,7 @@ Após o deploy, confirme primeiro a saúde do túnel com `https://gateway.jgmelo
 
 ## Sincronização em lote (compatibilidade)
 
-O endpoint existente de sincronização em lote foi preservado para cargas administrativas ou contingência. Um agente pode executar esta consulta, montar JSON e enviar por HTTPS:
+O endpoint existente de sincronização em lote foi preservado para cargas administrativas ou contingência. Ele não substitui o acesso direto ao SonoShowGateway para login, vendas e clientes. Um agente pode executar esta consulta, montar JSON e enviar por HTTPS:
 
 ```sql
 SELECT idfilial, categoria, idfuncionario, nomefuncionario, login, senhaweb AS senha
