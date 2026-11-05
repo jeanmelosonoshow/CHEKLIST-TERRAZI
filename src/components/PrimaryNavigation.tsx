@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef } from "react";
 import type { PermissionSet } from "@/lib/permissions";
 
-type ActiveArea = "dashboard" | "dashboardSettings" | "checklists" | "management" | "permissions" | "reports" | "stages";
+type ActiveArea = "dashboard" | "dashboardSettings" | "sources" | "checklists" | "management" | "permissions" | "reports" | "stages";
 
 export function PrimaryNavigation({ permissions, administrator, active }: { permissions: PermissionSet; administrator: boolean; active?: ActiveArea }) {
   const navigationRef = useRef<HTMLElement>(null);
@@ -22,6 +22,7 @@ export function PrimaryNavigation({ permissions, administrator, active }: { perm
     {(permissions.createChecklist || permissions.editChecklist) && link("management", "/admin/checklists", "Gestão")}
     {permissions.reports && link("reports", "/relatorios", "Relatórios")}
     {administrator && link("dashboardSettings", "/admin/dashboard", "Configurar painel")}
+    {administrator && link("sources", "/admin/fontes", "Fontes")}
     {administrator && link("permissions", "/admin/permissoes", "Permissões")}
   </nav>;
 }

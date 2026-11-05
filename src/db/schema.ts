@@ -25,6 +25,8 @@ export const fieldTypeEnum = pgEnum("tipo_campo_lista_verificacao", [
 ]);
 export const checklistStatusEnum = pgEnum("status_lista_verificacao", ["draft", "published", "archived"]);
 export const syncStatusEnum = pgEnum("status_sincronizacao", ["running", "success", "failed"]);
+export const optionSourceTypeEnum = pgEnum("tipo_fonte_opcoes", ["synchronized", "static", "postgres", "firebird"]);
+export const checklistExecutionStatusEnum = pgEnum("status_execucao_checklist", ["pending", "in_progress", "completed", "cancelled"]);
 export const dashboardVisualizationEnum = pgEnum("visualizacao_cenario_dashboard", [
   "metric",
   "bar",
@@ -112,6 +114,11 @@ export const syncedSources = pgTable("fontes_sincronizadas", {
   description: text("descricao"),
   active: boolean("ativo").default(true).notNull(),
   schema: jsonb("esquema").$type<Record<string, unknown>>().default({}).notNull(),
+  sourceType: optionSourceTypeEnum("tipo_fonte").default("synchronized").notNull(),
+  querySql: text("sql_consulta"),
+  resultValueField: text("campo_valor_resultado").default("VALUE").notNull(),
+  resultLabelField: text("campo_rotulo_resultado").default("LABEL").notNull(),
+  staticOptions: jsonb("opcoes_estaticas").$type<Array<{ value: string; label: string }>>().default([]).notNull(),
   lastSyncedAt: timestamp("ultima_sincronizacao_em", { withTimezone: true }),
   createdAt: timestamp("criado_em", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("atualizado_em", { withTimezone: true }).defaultNow().notNull(),
@@ -174,16 +181,59 @@ export const checklistFieldOptions = pgTable(
   (table) => [index("opcoes_campo_lista_verificacao_ordem_idx").on(table.fieldId, table.position)],
 );
 
-export const checklistResponses = pgTable("respostas_lista_verificacao", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  code: bigint("codigo", { mode: "number" }).generatedAlwaysAsIdentity().notNull().unique(),
-  checklistId: uuid("id_lista_verificacao").notNull().references(() => checklists.id),
-  userId: uuid("id_usuario").notNull().references(() => users.id),
-  answers: jsonb("respostas").$type<Record<string, unknown>>().default({}).notNull(),
-  submittedAt: timestamp("enviado_em", { withTimezone: true }),
-  createdAt: timestamp("criado_em", { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp("atualizado_em", { withTimezone: true }).defaultNow().notNull(),
-});
+export const checklistExecutions = pgTable(
+  "execucoes_checklist",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    code: bigint("codigo", { mode: "number" }).generatedAlwaysAsIdentity().notNull().unique(),
+    checklistId: uuid("id_lista_verificacao").notNull().references(() => checklists.id),
+    branchId: text("id_filial").notNull(),
+    saleNumber: text("numero_venda").notNull(),
+    customerName: text("nome_cliente"),
+    status: checklistExecutionStatusEnum("status").default("pending").notNull(),
+    assignedTo: uuid("atribuido_a").notNull().references(() => users.id),
+    createdBy: uuid("criado_por").notNull().references(() => users.id),
+    startedAt: timestamp("iniciado_em", { withTimezone: true }),
+    completedAt: timestamp("finalizado_em", { withTimezone: true }),
+    createdAt: timestamp("criado_em", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("atualizado_em", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index("execucoes_checklist_filial_venda_idx").on(table.branchId, table.saleNumber),
+    index("execucoes_checklist_status_responsavel_idx").on(table.status, table.assignedTo),
+    uniqueIndex("execucoes_checklist_ativa_venda_idx").on(table.checklistId, table.branchId, table.saleNumber)
+      .where(sql`${table.status} in ('pending', 'in_progress')`),
+  ],
+);
+
+export const checklistResponses = pgTable(
+  "respostas_lista_verificacao",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    code: bigint("codigo", { mode: "number" }).generatedAlwaysAsIdentity().notNull().unique(),
+    checklistId: uuid("id_lista_verificacao").notNull().references(() => checklists.id),
+    executionId: uuid("id_execucao").references(() => checklistExecutions.id, { onDelete: "cascade" }),
+    userId: uuid("id_usuario").notNull().references(() => users.id),
+    answers: jsonb("respostas").$type<Record<string, unknown>>().default({}).notNull(),
+    submittedAt: timestamp("enviado_em", { withTimezone: true }),
+    createdAt: timestamp("criado_em", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("atualizado_em", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [uniqueIndex("respostas_lista_verificacao_execucao_idx").on(table.executionId)],
+);
+
+export const checklistExecutionEvents = pgTable(
+  "eventos_execucao_checklist",
+  {
+    id: bigint("id", { mode: "number" }).generatedAlwaysAsIdentity().primaryKey(),
+    executionId: uuid("id_execucao").notNull().references(() => checklistExecutions.id, { onDelete: "cascade" }),
+    event: text("evento").notNull(),
+    userId: uuid("id_usuario").notNull().references(() => users.id),
+    data: jsonb("dados").$type<Record<string, unknown>>().default({}).notNull(),
+    createdAt: timestamp("criado_em", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [index("eventos_execucao_checklist_execucao_idx").on(table.executionId, table.createdAt)],
+);
 
 export const dashboardScenarios = pgTable(
   "cenarios_dashboard",

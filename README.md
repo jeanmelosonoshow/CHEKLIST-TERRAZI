@@ -132,6 +132,8 @@ A migration `0008_formatos_dashboard.sql` adiciona formatos independentes para r
 
 A migration `0009_formatos_colunas_dashboard.sql` adiciona regras de formato por coluna ou alias. Cada regra pode valer para a tabela principal, para o detalhamento ou para ambos, permitindo que uma mesma consulta apresente múltiplas dimensões, moedas, quantidades e datas com formatos independentes.
 
+A migration `0010_execucao_checklists_fontes.sql` adiciona publicação e execução operacional dos checklists, identificadas por códigos `EXE-000001`. Cada execução é vinculada à filial e à venda, permanece pendente ou em andamento até a conclusão dos campos obrigatórios e conserva um histórico de eventos. Os campos de seleção podem reutilizar fontes sincronizadas ou usar listas estáticas e consultas somente de leitura no PostgreSQL ou no Firebird via SonoShowGateway.
+
 A seção **Etapas** possui permissão própria por categoria e um painel responsivo preparado para apresentar uma linha por filial, venda e cliente. O molde inicial contém Separação, Desmontagem, Impermeabilização, Entrega e Montagem. A persistência operacional ficará desacoplada até que a origem dos selects e a estratégia de salvamento sejam definidas.
 
 O MD5 existe apenas por compatibilidade e não é adequado para novas senhas. Uma fase futura pode migrar gradualmente para Argon2/bcrypt quando a sincronização não sobrescrever mais o valor.

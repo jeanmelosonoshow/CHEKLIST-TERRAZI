@@ -71,6 +71,13 @@
       "when": 1794153600000,
       "tag": "0009_formatos_colunas_dashboard",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1794240000000,
+      "tag": "0010_execucao_checklists_fontes",
+      "breakpoints": true
     }
   ]
 }

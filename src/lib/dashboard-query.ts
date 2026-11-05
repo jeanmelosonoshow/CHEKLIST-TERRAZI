@@ -60,7 +60,11 @@ export function validateDashboardQuery(input: string) {
   return { valid: true as const, sql };
 }
 
-export function prepareDashboardQuery(sql: string, context: DashboardQueryContext) {
+export function prepareDashboardQuery(
+  sql: string,
+  context: DashboardQueryContext,
+  marker: (position: number) => string = () => "?",
+) {
   const values: Array<string | number | boolean | null> = [];
   const parameterValues: Record<string, string | number | null> = {
     idfilial: context.branchId,
@@ -93,7 +97,7 @@ export function prepareDashboardQuery(sql: string, context: DashboardQueryContex
       const match = sql.slice(index + 1).match(/^([a-z_][a-z0-9_]*)/i);
       if (match && allowedParameters.has(match[1].toLowerCase())) {
         values.push(parameterValues[match[1].toLowerCase()] ?? null);
-        result += "?";
+        result += marker(values.length);
         index += match[1].length;
         continue;
       }

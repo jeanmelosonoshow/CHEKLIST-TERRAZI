@@ -1,17 +1,28 @@
-import { asc, eq } from "drizzle-orm";
+import { and, asc, desc, eq } from "drizzle-orm";
 import { AppShell } from "@/components/AppShell";
+import { ChecklistExecutionWorkspace } from "@/components/ChecklistExecutionWorkspace";
 import { db } from "@/db";
-import { checklists } from "@/db/schema";
+import { checklistExecutions, checklists } from "@/db/schema";
+import { isAdministrator } from "@/lib/permissions";
 import { requirePermission } from "@/lib/session";
-import { formatHumanCode } from "@/lib/human-code";
 
 export const dynamic = "force-dynamic";
 
 export default async function ChecklistsPage() {
   const { user, permissions } = await requirePermission("viewChecklist");
-  const items = await db.select().from(checklists).where(eq(checklists.status, "published")).orderBy(asc(checklists.title));
+  const [templates, executionRows] = await Promise.all([
+    db.select({ id: checklists.id, code: checklists.code, title: checklists.title, description: checklists.description })
+      .from(checklists).where(eq(checklists.status, "published")).orderBy(asc(checklists.title)),
+    db.select({ execution: checklistExecutions, checklistTitle: checklists.title, checklistCode: checklists.code })
+      .from(checklistExecutions).innerJoin(checklists, eq(checklistExecutions.checklistId, checklists.id))
+      .where(isAdministrator(user) ? undefined : and(eq(checklistExecutions.branchId, user.branchId)))
+      .orderBy(desc(checklistExecutions.updatedAt)),
+  ]);
+  const executions = executionRows.map(({ execution, ...row }) => ({ ...execution, ...row,
+    startedAt: execution.startedAt?.toISOString() ?? null, completedAt: execution.completedAt?.toISOString() ?? null,
+    createdAt: execution.createdAt.toISOString(), updatedAt: execution.updatedAt.toISOString(),
+  }));
   return <AppShell user={user} permissions={permissions} active="checklists">
-    <section className="heroRow"><div><p className="eyebrow">FLUXOS</p><h1>Checklists</h1><p className="muted">Checklists publicados e disponíveis para sua categoria.</p></div></section>
-    <section className="sectionBlock">{items.length ? <div className="cardGrid">{items.map((item) => <article className="checklistCard" key={item.id}><span className="status published">Publicado</span><small className="entityCode">{formatHumanCode("CHK", item.code)}</small><h3>{item.title}</h3><p>{item.description || "Sem descrição."}</p><button className="secondaryButton" disabled>Iniciar em breve</button></article>)}</div> : <div className="emptyState"><span>✓</span><h3>Nenhum checklist publicado</h3><p>Os checklists disponíveis aparecerão aqui.</p></div>}</section>
+    <ChecklistExecutionWorkspace templates={templates} initialExecutions={executions} defaultBranchId={user.branchId} administrator={isAdministrator(user)} />
   </AppShell>;
 }

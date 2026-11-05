@@ -78,3 +78,58 @@ export const dashboardScenarioSchema = z.object({
 export const dashboardScenarioPreviewSchema = z.object({
   sql: z.string().trim().min(10).max(50_000),
 });
+
+const staticOptionSchema = z.object({
+  value: z.string().trim().min(1).max(200),
+  label: z.string().trim().min(1).max(300),
+});
+
+export const optionSourceSchema = z.object({
+  key: z.string().trim().toLowerCase().regex(/^[a-z0-9][a-z0-9_-]{1,99}$/),
+  label: z.string().trim().min(2).max(160),
+  description: z.string().trim().max(1000).nullish(),
+  sourceType: z.enum(["static", "postgres", "firebird"]),
+  querySql: z.string().trim().max(50_000).nullish(),
+  resultValueField: z.string().trim().min(1).max(100).default("VALUE"),
+  resultLabelField: z.string().trim().min(1).max(100).default("LABEL"),
+  staticOptions: z.array(staticOptionSchema).max(1_000).default([]),
+  active: z.boolean().default(true),
+}).superRefine((source, context) => {
+  if (source.sourceType === "static" && source.staticOptions.length === 0) {
+    context.addIssue({ code: "custom", path: ["staticOptions"], message: "Inclua pelo menos uma opção estática." });
+  }
+  if (source.sourceType !== "static" && !source.querySql) {
+    context.addIssue({ code: "custom", path: ["querySql"], message: "Informe a consulta da fonte." });
+  }
+  const values = source.staticOptions.map((option) => option.value);
+  if (new Set(values).size !== values.length) {
+    context.addIssue({ code: "custom", path: ["staticOptions"], message: "Os valores das opções devem ser únicos." });
+  }
+});
+
+export const optionSourcePreviewSchema = z.object({
+  sourceType: z.enum(["static", "postgres", "firebird"]),
+  querySql: z.string().trim().max(50_000).nullish(),
+  resultValueField: z.string().trim().min(1).max(100).default("VALUE"),
+  resultLabelField: z.string().trim().min(1).max(100).default("LABEL"),
+  staticOptions: z.array(staticOptionSchema).max(1_000).default([]),
+}).superRefine((source, context) => {
+  if (source.sourceType === "static" && source.staticOptions.length === 0) {
+    context.addIssue({ code: "custom", path: ["staticOptions"], message: "Inclua pelo menos uma opção estática." });
+  }
+  if (source.sourceType !== "static" && !source.querySql) {
+    context.addIssue({ code: "custom", path: ["querySql"], message: "Informe a consulta da fonte." });
+  }
+});
+
+export const startChecklistExecutionSchema = z.object({
+  checklistId: z.string().uuid(),
+  branchId: z.string().trim().min(1).max(120),
+  saleNumber: z.string().trim().min(1).max(120),
+  customerName: z.string().trim().max(300).nullish(),
+});
+
+export const saveChecklistExecutionSchema = z.object({
+  answers: z.record(z.string().uuid(), z.unknown()),
+  complete: z.boolean().default(false),
+});
