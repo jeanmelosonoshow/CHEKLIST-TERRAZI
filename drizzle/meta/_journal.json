@@ -64,6 +64,13 @@
       "when": 1794067200000,
       "tag": "0008_formatos_dashboard",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1794153600000,
+      "tag": "0009_formatos_colunas_dashboard",
+      "breakpoints": true
     }
   ]
 }

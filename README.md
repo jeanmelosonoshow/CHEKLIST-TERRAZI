@@ -130,6 +130,8 @@ A migration `0007_cenarios_dashboard.sql` cria os cenários configuráveis do da
 
 A migration `0008_formatos_dashboard.sql` adiciona formatos independentes para rótulos e valores dos cenários: texto, inteiro, decimal, Real, percentual, data curta, data por extenso, data e hora, mês/ano, nome do mês e dia da semana. A transformação é somente visual; o valor original continua sendo usado nos parâmetros do detalhamento.
 
+A migration `0009_formatos_colunas_dashboard.sql` adiciona regras de formato por coluna ou alias. Cada regra pode valer para a tabela principal, para o detalhamento ou para ambos, permitindo que uma mesma consulta apresente múltiplas dimensões, moedas, quantidades e datas com formatos independentes.
+
 A seção **Etapas** possui permissão própria por categoria e um painel responsivo preparado para apresentar uma linha por filial, venda e cliente. O molde inicial contém Separação, Desmontagem, Impermeabilização, Entrega e Montagem. A persistência operacional ficará desacoplada até que a origem dos selects e a estratégia de salvamento sejam definidas.
 
 O MD5 existe apenas por compatibilidade e não é adequado para novas senhas. Uma fase futura pode migrar gradualmente para Argon2/bcrypt quando a sincronização não sobrescrever mais o valor.

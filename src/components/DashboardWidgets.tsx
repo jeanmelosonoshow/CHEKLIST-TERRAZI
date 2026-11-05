@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { formatDashboardValue, numericDashboardValue, type DashboardDisplayFormat } from "@/lib/dashboard-format";
 
-type Scenario = { id: string; title: string; description: string | null; visualization: "metric" | "bar" | "donut" | "table"; labelField: string | null; valueField: string; labelFormat: DashboardDisplayFormat; valueFormat: DashboardDisplayFormat; color: string; hasDetails: boolean };
+type Scenario = { id: string; title: string; description: string | null; visualization: "metric" | "bar" | "donut" | "table"; labelField: string | null; valueField: string; labelFormat: DashboardDisplayFormat; valueFormat: DashboardDisplayFormat; columnFormats: Array<{ field: string; format: DashboardDisplayFormat; scope: "summary" | "detail" | "both" }>; color: string; hasDetails: boolean };
 type Result = { rows: Record<string, unknown>[]; truncated: boolean; error?: string };
 
 function field(row: Record<string, unknown>, name: string | null) {
@@ -11,7 +11,9 @@ function field(row: Record<string, unknown>, name: string | null) {
   const key = Object.keys(row).find((candidate) => candidate.toLowerCase() === name.toLowerCase());
   return key ? row[key] : undefined;
 }
-function formatCell(column: string, value: unknown, scenario: Scenario) {
+function formatCell(column: string, value: unknown, scenario: Scenario, scope: "summary" | "detail") {
+  const rule = scenario.columnFormats.find((item) => item.field.toLowerCase() === column.toLowerCase() && (item.scope === scope || item.scope === "both"));
+  if (rule) return formatDashboardValue(value, rule.format);
   if (column.toLowerCase() === scenario.valueField.toLowerCase()) return formatDashboardValue(value, scenario.valueFormat);
   if (scenario.labelField && column.toLowerCase() === scenario.labelField.toLowerCase()) return formatDashboardValue(value, scenario.labelFormat);
   return String(value ?? "");
@@ -81,9 +83,9 @@ function DashboardWidget({ scenario, result, openDetail }: { scenario: Scenario;
 }
 
 function WidgetHeading({ scenario }: { scenario: Scenario }) { return <header><div><h3>{scenario.title}</h3><p>{scenario.description}</p></div>{scenario.hasDetails && <small>Detalhes disponíveis</small>}</header>; }
-function MiniTable({ scenario, rows, onRow, clickable }: { scenario: Scenario; rows: Record<string, unknown>[]; onRow: (row: Record<string, unknown>) => void; clickable: boolean }) { const columns = rows[0] ? Object.keys(rows[0]).slice(0, 5) : []; return columns.length ? <div className="tableWrap"><table><thead><tr>{columns.map((column) => <th key={column}>{column}</th>)}</tr></thead><tbody>{rows.slice(0, 8).map((row, index) => <tr className={clickable ? "clickableRow" : ""} key={index} onClick={() => clickable && onRow(row)}>{columns.map((column) => <td key={column}>{formatCell(column, row[column], scenario)}</td>)}</tr>)}</tbody></table></div> : <p className="muted">Sem dados para o período.</p>; }
+function MiniTable({ scenario, rows, onRow, clickable }: { scenario: Scenario; rows: Record<string, unknown>[]; onRow: (row: Record<string, unknown>) => void; clickable: boolean }) { const columns = rows[0] ? Object.keys(rows[0]).slice(0, 5) : []; return columns.length ? <div className="tableWrap"><table><thead><tr>{columns.map((column) => <th key={column}>{column}</th>)}</tr></thead><tbody>{rows.slice(0, 8).map((row, index) => <tr className={clickable ? "clickableRow" : ""} key={index} onClick={() => clickable && onRow(row)}>{columns.map((column) => <td key={column}>{formatCell(column, row[column], scenario, "summary")}</td>)}</tr>)}</tbody></table></div> : <p className="muted">Sem dados para o período.</p>; }
 
 function DetailModal({ scenario, rows, truncated, close }: { scenario: Scenario; rows: Record<string, unknown>[]; truncated: boolean; close: () => void }) {
   const columns = rows[0] ? Object.keys(rows[0]) : [];
-  return <div className="modalBackdrop"><section className="builder detailModal" role="dialog" aria-modal="true" aria-labelledby="detail-title"><div className="builderHeader"><div><p className="eyebrow">DETALHAMENTO</p><h2 id="detail-title">{scenario.title}</h2><p className="muted">{rows.length} registro(s){truncated ? " · resultado limitado a 500 linhas" : ""}</p></div><button className="closeButton" onClick={close} aria-label="Fechar detalhes">×</button></div>{columns.length ? <div className="tableWrap detailTable"><table><thead><tr>{columns.map((column) => <th key={column}>{column}</th>)}</tr></thead><tbody>{rows.map((row, index) => <tr key={index}>{columns.map((column) => <td key={column}>{formatCell(column, row[column], scenario)}</td>)}</tr>)}</tbody></table></div> : <div className="emptyState"><span>✓</span><h3>Nenhum registro encontrado</h3></div>}</section></div>;
+  return <div className="modalBackdrop"><section className="builder detailModal" role="dialog" aria-modal="true" aria-labelledby="detail-title"><div className="builderHeader"><div><p className="eyebrow">DETALHAMENTO</p><h2 id="detail-title">{scenario.title}</h2><p className="muted">{rows.length} registro(s){truncated ? " · resultado limitado a 500 linhas" : ""}</p></div><button className="closeButton" onClick={close} aria-label="Fechar detalhes">×</button></div>{columns.length ? <div className="tableWrap detailTable"><table><thead><tr>{columns.map((column) => <th key={column}>{column}</th>)}</tr></thead><tbody>{rows.map((row, index) => <tr key={index}>{columns.map((column) => <td key={column}>{formatCell(column, row[column], scenario, "detail")}</td>)}</tr>)}</tbody></table></div> : <div className="emptyState"><span>✓</span><h3>Nenhum registro encontrado</h3></div>}</section></div>;
 }

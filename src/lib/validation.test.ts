@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { syncUsersSchema } from "./validation";
+import { dashboardScenarioSchema, syncUsersSchema } from "./validation";
 
 const validUser = {
   idfilial: "001",
@@ -37,5 +37,40 @@ describe("syncUsersSchema", () => {
         users: [{ ...validUser, idfuncionario: "42.5" }],
       }).success,
     ).toBe(false);
+  });
+});
+
+describe("dashboardScenarioSchema", () => {
+  const scenario = {
+    title: "Pedidos em encomenda",
+    visualization: "table",
+    summarySql: "SELECT IDFILIAL, TOTAL FROM VENDA",
+    valueField: "TOTAL",
+    labelFormat: "text",
+    valueFormat: "currency_brl",
+    color: "#126b50",
+    position: 1,
+    active: true,
+    version: 1,
+  };
+
+  it("accepts independent column formats", () => {
+    expect(dashboardScenarioSchema.safeParse({
+      ...scenario,
+      columnFormats: [
+        { field: "TOTAL", format: "currency_brl", scope: "both" },
+        { field: "DATAENTREGA", format: "date_short", scope: "detail" },
+      ],
+    }).success).toBe(true);
+  });
+
+  it("rejects duplicate rules for the same column and scope", () => {
+    expect(dashboardScenarioSchema.safeParse({
+      ...scenario,
+      columnFormats: [
+        { field: "TOTAL", format: "currency_brl", scope: "summary" },
+        { field: "total", format: "decimal", scope: "summary" },
+      ],
+    }).success).toBe(false);
   });
 });

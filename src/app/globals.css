@@ -177,6 +177,12 @@ button.dashboardWidget:disabled { cursor: default; opacity: 1; }
 .scenarioFormatOptions { display: grid; margin: -4px 0 20px; grid-template-columns: 1fr 1fr; gap: 12px; }
 .scenarioFormatOptions label { padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: #fafcfb; }
 .scenarioFormatOptions small { color: var(--muted); font-size: .68rem; font-weight: 500; line-height: 1.45; }
+.columnFormatsEditor { margin: 22px 0; padding: 18px; border: 1px solid var(--line); border-radius: 14px; background: #f7faf8; }
+.columnFormatsEditor .fieldsTitle { margin: 0 0 14px; }
+.columnFormatList { display: grid; gap: 9px; }
+.columnFormatRow { display: grid; padding: 12px; grid-template-columns: 1fr 1.3fr 1fr 44px; align-items: end; gap: 10px; border: 1px solid var(--line); border-radius: 11px; background: var(--paper); }
+.columnFormatRow .removeButton { grid-column: 4; margin-bottom: 0; }
+.columnFormatsEmpty { margin: 0; padding: 16px; border: 1px dashed #c8d3cd; border-radius: 10px; color: var(--muted); background: var(--paper); font-size: .78rem; }
 .scenarioActive { grid-column: auto; margin-bottom: 12px; }
 .sqlField { margin-top: 17px; }
 .sqlField textarea { min-height: 150px; color: #18372b; background: #f7faf8; font: 12px/1.55 Consolas, "Courier New", monospace; tab-size: 2; }
@@ -232,6 +238,10 @@ button.dashboardWidget:disabled { cursor: default; opacity: 1; }
   .dynamicDashboard { grid-template-columns: 1fr; }
   .dashboardWidget, .chartWidget, .tableWidget { grid-column: 1; }
   .scenarioOptions { grid-template-columns: 1fr 1fr; }
+  .columnFormatRow { grid-template-columns: 1fr 1fr 44px; }
+  .columnFormatRow label { grid-column: span 1; }
+  .columnFormatRow label:nth-child(3) { grid-column: 1 / 3; }
+  .columnFormatRow .removeButton { grid-column: 3; grid-row: 1; }
   .donutLayout { grid-template-columns: 140px 1fr; }
   .donutChart { width: 130px; height: 130px; }
   .donutChart::before { width: 82px; height: 82px; }
@@ -273,6 +283,10 @@ button.dashboardWidget:disabled { cursor: default; opacity: 1; }
   .stageLegend .stageStatus:last-child { grid-column: 1 / -1; }
   .stagesEmpty { padding: 24px 18px; }
   .scenarioOptions, .scenarioFormatOptions, .donutLayout { grid-template-columns: 1fr; }
+  .columnFormatsEditor { padding: 14px; }
+  .columnFormatRow { grid-template-columns: 1fr 44px; }
+  .columnFormatRow label, .columnFormatRow label:nth-child(3) { grid-column: 1; }
+  .columnFormatRow .removeButton { grid-column: 2; grid-row: 1; }
   .donutChart { margin: 0 auto; }
   .barChart button { grid-template-columns: minmax(80px, .8fr) minmax(80px, 1.4fr) 55px; }
 }

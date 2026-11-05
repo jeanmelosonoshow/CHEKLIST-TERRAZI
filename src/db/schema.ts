@@ -198,6 +198,11 @@ export const dashboardScenarios = pgTable(
     valueField: text("campo_valor").default("QUANTIDADE").notNull(),
     labelFormat: dashboardDisplayFormatEnum("formato_rotulo").default("text").notNull(),
     valueFormat: dashboardDisplayFormatEnum("formato_valor").default("auto").notNull(),
+    columnFormats: jsonb("formatos_colunas").$type<Array<{
+      field: string;
+      format: typeof dashboardDisplayFormatEnum.enumValues[number];
+      scope: "summary" | "detail" | "both";
+    }>>().default([]).notNull(),
     color: text("cor").default("#126b50").notNull(),
     position: integer("posicao").default(0).notNull(),
     active: boolean("ativo").default(true).notNull(),

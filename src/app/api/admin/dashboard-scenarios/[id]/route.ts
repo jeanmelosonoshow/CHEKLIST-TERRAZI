@@ -33,6 +33,7 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
       valueField: parsed.data.valueField,
       labelFormat: parsed.data.labelFormat,
       valueFormat: parsed.data.valueFormat,
+      columnFormats: parsed.data.columnFormats,
       color: parsed.data.color,
       position: parsed.data.position,
       active: parsed.data.active,

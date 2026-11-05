@@ -59,10 +59,20 @@ export const dashboardScenarioSchema = z.object({
   valueField: z.string().trim().min(1).max(100).default("QUANTIDADE"),
   labelFormat: dashboardDisplayFormatSchema.default("text"),
   valueFormat: dashboardDisplayFormatSchema.default("auto"),
+  columnFormats: z.array(z.object({
+    field: z.string().trim().min(1).max(100),
+    format: dashboardDisplayFormatSchema,
+    scope: z.enum(["summary", "detail", "both"]),
+  })).max(100).default([]),
   color: z.string().trim().regex(/^#[0-9a-fA-F]{6}$/),
   position: z.coerce.number().int().min(0).max(10_000),
   active: z.boolean().default(true),
   version: z.coerce.number().int().min(0).default(0),
+}).superRefine((scenario, context) => {
+  const keys = scenario.columnFormats.map((rule) => `${rule.field.toLowerCase()}:${rule.scope}`);
+  if (new Set(keys).size !== keys.length) {
+    context.addIssue({ code: "custom", path: ["columnFormats"], message: "Existem regras duplicadas para a mesma coluna e aplicação." });
+  }
 });
 
 export const dashboardScenarioPreviewSchema = z.object({

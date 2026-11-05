@@ -5,10 +5,12 @@ import { useRouter } from "next/navigation";
 import type { DashboardDisplayFormat } from "@/lib/dashboard-format";
 
 type Visualization = "metric" | "bar" | "donut" | "table";
+type ColumnFormatRule = { field: string; format: DashboardDisplayFormat; scope: "summary" | "detail" | "both" };
 type Scenario = {
   id: string; title: string; description: string | null; visualization: Visualization;
   summarySql: string; detailSql: string | null; labelField: string | null; valueField: string;
   labelFormat: DashboardDisplayFormat; valueFormat: DashboardDisplayFormat;
+  columnFormats: ColumnFormatRule[];
   color: string; position: number; active: boolean; version: number; createdAt: string; updatedAt: string;
 };
 type Draft = Omit<Scenario, "id" | "createdAt" | "updatedAt"> & { id?: string };
@@ -16,7 +18,7 @@ type Draft = Omit<Scenario, "id" | "createdAt" | "updatedAt"> & { id?: string };
 const emptyDraft: Draft = {
   title: "", description: "", visualization: "metric", summarySql: "", detailSql: "",
   labelField: "STATUS", valueField: "QUANTIDADE", labelFormat: "text", valueFormat: "auto",
-  color: "#126b50", position: 0, active: true, version: 0,
+  columnFormats: [], color: "#126b50", position: 0, active: true, version: 0,
 };
 
 const formatOptions: { value: DashboardDisplayFormat; label: string }[] = [
@@ -46,6 +48,9 @@ export function DashboardScenarioManager({ initialScenarios }: { initialScenario
     setDraft(scenario ? { ...scenario } : { ...emptyDraft, position: initialScenarios.length });
   }
   function update<K extends keyof Draft>(key: K, value: Draft[K]) { setDraft((current) => current ? { ...current, [key]: value } : current); }
+  function updateColumnFormat(index: number, patch: Partial<ColumnFormatRule>) {
+    setDraft((current) => current ? { ...current, columnFormats: current.columnFormats.map((rule, ruleIndex) => ruleIndex === index ? { ...rule, ...patch } : rule) } : current);
+  }
 
   async function testQuery() {
     if (!draft?.summarySql) return;
@@ -86,6 +91,9 @@ export function DashboardScenarioManager({ initialScenarios }: { initialScenario
         <div className="formGrid"><label>Título<input value={draft.title} onChange={(e) => update("title", e.target.value)} required minLength={3} /></label><label>Descrição<input value={draft.description || ""} onChange={(e) => update("description", e.target.value)} /></label></div>
         <div className="scenarioOptions"><label>Visualização<select value={draft.visualization} onChange={(e) => update("visualization", e.target.value as Visualization)}><option value="metric">Indicador numérico</option><option value="bar">Gráfico de barras</option><option value="donut">Gráfico de rosca</option><option value="table">Tabela resumida</option></select></label><label>Campo de rótulo<input value={draft.labelField || ""} onChange={(e) => update("labelField", e.target.value)} placeholder="Ex.: STATUS" /></label><label>Campo de valor<input value={draft.valueField} onChange={(e) => update("valueField", e.target.value)} placeholder="Ex.: QUANTIDADE" required /></label><label>Cor<input type="color" value={draft.color} onChange={(e) => update("color", e.target.value)} /></label><label>Ordem<input type="number" min={0} value={draft.position} onChange={(e) => update("position", Number(e.target.value))} /></label><label className="checkLabel scenarioActive"><input type="checkbox" checked={draft.active} onChange={(e) => update("active", e.target.checked)} />Ativo</label></div>
         <div className="scenarioFormatOptions"><label>Formato do rótulo<select value={draft.labelFormat} onChange={(e) => update("labelFormat", e.target.value as DashboardDisplayFormat)}>{formatOptions.map((option) => <option value={option.value} key={option.value}>{option.label}</option>)}</select><small>Aplicado às categorias, datas e nomes exibidos no gráfico.</small></label><label>Formato do valor<select value={draft.valueFormat} onChange={(e) => update("valueFormat", e.target.value as DashboardDisplayFormat)}>{formatOptions.map((option) => <option value={option.value} key={option.value}>{option.label}</option>)}</select><small>Aplicado ao total do card e aos números do gráfico.</small></label></div>
+        <section className="columnFormatsEditor"><div className="fieldsTitle"><div><h3>Formatação por coluna</h3><p>Use o nome ou alias exato retornado pelo SQL. A regra específica substitui o formato geral nas tabelas.</p></div><button type="button" className="secondaryButton" onClick={() => update("columnFormats", [...draft.columnFormats, { field: "", format: "auto", scope: "both" }])}>+ Adicionar coluna</button></div>
+          {draft.columnFormats.length ? <div className="columnFormatList">{draft.columnFormats.map((rule, index) => <div className="columnFormatRow" key={index}><label>Coluna ou alias<input value={rule.field} onChange={(event) => updateColumnFormat(index, { field: event.target.value })} placeholder="Ex.: VALORTOTAL" required /></label><label>Formato<select value={rule.format} onChange={(event) => updateColumnFormat(index, { format: event.target.value as DashboardDisplayFormat })}>{formatOptions.map((option) => <option value={option.value} key={option.value}>{option.label}</option>)}</select></label><label>Aplicar em<select value={rule.scope} onChange={(event) => updateColumnFormat(index, { scope: event.target.value as ColumnFormatRule["scope"] })}><option value="summary">Tabela principal</option><option value="detail">Detalhamento</option><option value="both">Principal e detalhe</option></select></label><button type="button" className="removeButton" onClick={() => update("columnFormats", draft.columnFormats.filter((_, ruleIndex) => ruleIndex !== index))} aria-label={`Remover regra da coluna ${rule.field || index + 1}`}>×</button></div>)}</div> : <p className="columnFormatsEmpty">Nenhuma regra específica. As colunas de rótulo e valor usarão os formatos gerais acima.</p>}
+        </section>
         <label className="sqlField">Consulta do card ou gráfico<textarea rows={9} spellCheck={false} value={draft.summarySql} onChange={(e) => update("summarySql", e.target.value)} required placeholder="SELECT COUNT(*) AS QUANTIDADE FROM VENDA WHERE IDFILIAL = :idfilial" /></label>
         <label className="sqlField">Consulta de detalhe ao clicar — opcional<textarea rows={8} spellCheck={false} value={draft.detailSql || ""} onChange={(e) => update("detailSql", e.target.value)} placeholder="SELECT IDFILIAL, NUMEROVENDA, CLIENTE FROM VENDA WHERE STATUS = :detalhe_valor" /></label>
         <p className="queryHelp">Parâmetros disponíveis: <code>:idfilial</code>, <code>:idfuncionario</code>, <code>:categoria</code>, <code>:detalhe_valor</code>, <code>:detalhe_campo</code> e <code>:detalhe_serie</code>.</p>
