@@ -10,6 +10,7 @@ const allowedParameters = new Set([
   "detalhe_campo",
   "detalhe_serie",
   "numero_venda",
+  "numerosaida",
 ]);
 
 export type DashboardQueryContext = {
@@ -76,6 +77,7 @@ export function prepareDashboardQuery(
     detalhe_campo: context.detailField ?? null,
     detalhe_serie: context.detailSeries ?? null,
     numero_venda: context.saleNumber ?? null,
+    numerosaida: context.saleNumber ?? null,
   };
   let result = "";
   let state: "normal" | "literal" | "identifier" = "normal";

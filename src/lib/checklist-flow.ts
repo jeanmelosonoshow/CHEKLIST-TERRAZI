@@ -4,10 +4,10 @@ export type FlowNodeDefinition = {
   id?: string; nodeKey: string; type: FlowNodeType; title: string; description?: string | null;
   fieldType?: FlowFieldType | null; required?: boolean; sourceKey?: string | null;
   automationSource?: "postgres" | "firebird" | null; querySql?: string | null; resultField?: string;
-  outcome?: "success" | "failure" | null; position: number; configurationSelected?: boolean;
+  customerResultField?: string | null; outcome?: "success" | "failure" | null; position: number; configurationSelected?: boolean;
 };
 export type FlowEdgeDefinition = {
-  sourceKey: string; targetKey: string; condition: "always" | "equals" | "not_equals";
+  sourceKey: string; targetKey: string; condition: "always" | "equals" | "not_equals" | "greater_than" | "greater_or_equal" | "less_than" | "less_or_equal";
   conditionValue?: unknown; label?: string | null; priority: number;
 };
 export type FlowDefinition = { nodes: FlowNodeDefinition[]; edges: FlowEdgeDefinition[] };
@@ -23,8 +23,10 @@ export function validateFlowDefinition(flow: FlowDefinition) {
   for (const node of flow.nodes) {
     if ((node.type === "question" || node.type === "action") && !node.fieldType) errors.push(`Defina o tipo de resposta de “${node.title}”.`);
     if (node.type === "automatic_decision" && (!node.automationSource || !node.querySql || !node.resultField)) errors.push(`Configure a consulta automática de “${node.title}”.`);
+    if (node.type === "start" && node.automationSource && (!node.querySql || !node.resultField)) errors.push("Configure a consulta de validação do bloco inicial.");
     if (node.type === "end" && !node.outcome) errors.push(`Defina o resultado do encerramento “${node.title}”.`);
     const outgoing = flow.edges.filter((edge) => edge.sourceKey === node.nodeKey);
+    if (node.type === "start" && node.automationSource && outgoing.some((edge) => edge.condition === "always")) errors.push("A validação inicial não pode usar conexão “Sempre”; configure uma condição de aprovação, como maior que 0.");
     if (node.type === "end" && outgoing.length) errors.push(`O encerramento “${node.title}” não pode possuir próximo passo.`);
     if (node.type !== "end" && !outgoing.length) errors.push(`O bloco “${node.title}” precisa de uma conexão de saída.`);
   }
@@ -62,6 +64,16 @@ export function normalizeDecisionValue(value: unknown): unknown {
 export function selectNextEdge(edges: FlowEdgeDefinition[], rawValue: unknown) {
   const value = normalizeDecisionValue(rawValue);
   const sorted = [...edges].sort((a, b) => a.priority - b.priority);
-  const conditional = sorted.find((edge) => edge.condition === "equals" ? Object.is(value, normalizeDecisionValue(edge.conditionValue)) : edge.condition === "not_equals" ? !Object.is(value, normalizeDecisionValue(edge.conditionValue)) : false);
+  const conditional = sorted.find((edge) => {
+    const expected = normalizeDecisionValue(edge.conditionValue);
+    if (edge.condition === "equals") return Object.is(value, expected);
+    if (edge.condition === "not_equals") return !Object.is(value, expected);
+    if (typeof value !== "number" || typeof expected !== "number") return false;
+    if (edge.condition === "greater_than") return value > expected;
+    if (edge.condition === "greater_or_equal") return value >= expected;
+    if (edge.condition === "less_than") return value < expected;
+    if (edge.condition === "less_or_equal") return value <= expected;
+    return false;
+  });
   return conditional ?? sorted.find((edge) => edge.condition === "always") ?? null;
 }

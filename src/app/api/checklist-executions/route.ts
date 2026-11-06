@@ -5,6 +5,8 @@ import { checklistExecutionEvents, checklistExecutions, checklistFlowEdges, chec
 import { getApiPermission } from "@/lib/api-auth";
 import { isAdministrator } from "@/lib/permissions";
 import { startChecklistExecutionSchema } from "@/lib/validation";
+import { selectNextEdge } from "@/lib/checklist-flow";
+import { executeFlowAutomation, readAutomationField } from "@/lib/flow-automation";
 
 export async function POST(request: Request) {
   const auth = await getApiPermission("viewChecklist");
@@ -19,20 +21,36 @@ export async function POST(request: Request) {
     eq(checklistExecutions.saleNumber, parsed.data.saleNumber), inArray(checklistExecutions.status, ["pending", "in_progress"]),
   )).limit(1);
   if (existing) return NextResponse.json({ error: "Já existe uma execução pendente deste checklist para a venda.", executionId: existing.id }, { status: 409 });
-  const [startNode] = await db.select({ id: checklistFlowNodes.id }).from(checklistFlowNodes).where(and(eq(checklistFlowNodes.checklistId, checklist.id), eq(checklistFlowNodes.type, "start"))).limit(1);
+  const [startNode] = await db.select().from(checklistFlowNodes).where(and(eq(checklistFlowNodes.checklistId, checklist.id), eq(checklistFlowNodes.type, "start"))).limit(1);
   let currentNodeId: string | null = null;
+  let customerName: string | null = null;
   if (startNode) {
-    const [firstEdge] = await db.select({ targetNodeId: checklistFlowEdges.targetNodeId }).from(checklistFlowEdges)
-      .where(eq(checklistFlowEdges.sourceNodeId, startNode.id)).orderBy(checklistFlowEdges.priority).limit(1);
-    if (!firstEdge) return NextResponse.json({ error: "O fluxo publicado não possui uma saída a partir do início." }, { status: 409 });
-    currentNodeId = firstEdge.targetNodeId;
+    const edges = await db.select().from(checklistFlowEdges).where(eq(checklistFlowEdges.sourceNodeId, startNode.id)).orderBy(checklistFlowEdges.priority);
+    let selectedTargetNodeId: string | null = edges[0]?.targetNodeId ?? null;
+    if (startNode.automationSource) {
+      try {
+        const result = await executeFlowAutomation(startNode, { branchId: parsed.data.branchId, saleNumber: parsed.data.saleNumber }, auth.user);
+        const selectedEdge = selectNextEdge(edges.map((edge) => ({ sourceKey: startNode.nodeKey, targetKey: edge.targetNodeId, condition: edge.condition, conditionValue: edge.conditionValue, label: edge.label, priority: edge.priority })), result.value);
+        selectedTargetNodeId = selectedEdge?.targetKey ?? null;
+        if (startNode.customerResultField) {
+          const customer = readAutomationField(result.row, startNode.customerResultField);
+          customerName = customer === null || customer === undefined ? null : String(customer);
+        }
+      } catch (error) {
+        const status = error instanceof Error && "status" in error ? Number(error.status) || 409 : 409;
+        return NextResponse.json({ error: error instanceof Error ? error.message : "Não foi possível validar a venda." }, { status });
+      }
+      if (!selectedTargetNodeId) return NextResponse.json({ error: "Venda não localizada ou não atende à validação inicial. Nenhuma demanda foi criada." }, { status: 422 });
+    }
+    if (!selectedTargetNodeId) return NextResponse.json({ error: "O fluxo publicado não possui uma saída a partir do início." }, { status: 409 });
+    currentNodeId = selectedTargetNodeId;
   }
   let execution;
   try {
     execution = await db.transaction(async (tx) => {
       const [created] = await tx.insert(checklistExecutions).values({
         checklistId: checklist.id, branchId: parsed.data.branchId, saleNumber: parsed.data.saleNumber,
-        customerName: parsed.data.customerName || null, assignedTo: auth.user.id, createdBy: auth.user.id, currentNodeId,
+        customerName, assignedTo: auth.user.id, createdBy: auth.user.id, currentNodeId,
       }).returning();
       await tx.insert(checklistResponses).values({ checklistId: checklist.id, executionId: created.id, userId: auth.user.id, answers: {} });
       await tx.insert(checklistExecutionEvents).values({ executionId: created.id, event: "created", userId: auth.user.id, data: { branchId: created.branchId, saleNumber: created.saleNumber } });

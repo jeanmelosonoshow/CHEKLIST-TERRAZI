@@ -136,6 +136,8 @@ A migration `0010_execucao_checklists_fontes.sql` adiciona publicação e execu�
 
 A migration `0011_fluxos_condicionais_checklist.sql` adiciona o motor de fluxos inteligentes. O construtor desktop combina blocos de início, pergunta, decisão automática, ação, observação e encerramento, ligados por conectores condicionais. A execução mostra apenas a etapa atual, registra respostas e decisões no PostgreSQL e encerra com resultado de sucesso ou sem sucesso. Decisões automáticas podem consultar Firebird ou PostgreSQL usando `:idfilial`, `:numero_venda`, `:idfuncionario` e `:categoria`.
 
+A migration `0012_validacao_inicial_venda.sql` adiciona comparações numéricas aos conectores (`>`, `>=`, `<` e `<=`) e o mapeamento opcional do nome do cliente retornado pela consulta. O bloco inicial pode executar uma consulta antes de criar a demanda; se nenhuma condição de aprovação corresponder ao resultado, nenhuma execução é gravada. Isso permite validar filial e número da saída com `QTDE > 0` e obter o cliente diretamente do banco.
+
 A seção **Etapas** possui permissão própria por categoria e um painel responsivo preparado para apresentar uma linha por filial, venda e cliente. O molde inicial contém Separação, Desmontagem, Impermeabilização, Entrega e Montagem. A persistência operacional ficará desacoplada até que a origem dos selects e a estratégia de salvamento sejam definidas.
 
 O MD5 existe apenas por compatibilidade e não é adequado para novas senhas. Uma fase futura pode migrar gradualmente para Argon2/bcrypt quando a sincronização não sobrescrever mais o valor.

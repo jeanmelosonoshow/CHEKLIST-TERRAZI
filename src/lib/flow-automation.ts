@@ -4,7 +4,7 @@ import { prepareDashboardQuery, validateDashboardQuery } from "./dashboard-query
 import { queryFirebirdGateway } from "./firebird-gateway";
 import { normalizeDecisionValue } from "./checklist-flow";
 
-function readField(row: Record<string, unknown>, name: string) {
+export function readAutomationField(row: Record<string, unknown>, name: string) {
   const key = Object.keys(row).find((candidate) => candidate.toLowerCase() === name.toLowerCase());
   return key ? row[key] : undefined;
 }
@@ -23,7 +23,7 @@ export async function executeFlowAutomation(node: { automationSource: "postgres"
     rows = Array.from(await sql.unsafe<Record<string, unknown>[]>(prepared.sql, prepared.params));
   }
   if (!rows.length) throw Object.assign(new Error("A consulta automática não retornou resultado."), { status: 409 });
-  const value = readField(rows[0], node.resultField);
+  const value = readAutomationField(rows[0], node.resultField);
   if (value === undefined || value === null) throw Object.assign(new Error(`O campo ${node.resultField} não foi retornado pela consulta.`), { status: 409 });
-  return normalizeDecisionValue(value);
+  return { value: normalizeDecisionValue(value), row: rows[0] };
 }

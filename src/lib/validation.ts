@@ -43,12 +43,13 @@ const flowNodeSchema = z.object({
   automationSource: z.enum(["postgres", "firebird"]).nullish(),
   querySql: z.string().trim().max(50_000).nullish(),
   resultField: z.string().trim().min(1).max(100).default("RESULTADO"),
+  customerResultField: z.string().trim().max(100).nullish(),
   outcome: z.enum(["success", "failure"]).nullish(),
   position: z.coerce.number().int().min(0).max(10_000),
 });
 const flowEdgeSchema = z.object({
   sourceKey: z.string().trim().min(2).max(100), targetKey: z.string().trim().min(2).max(100),
-  condition: z.enum(["always", "equals", "not_equals"]), conditionValue: z.unknown().optional(),
+  condition: z.enum(["always", "equals", "not_equals", "greater_than", "greater_or_equal", "less_than", "less_or_equal"]), conditionValue: z.unknown().optional(),
   label: z.string().trim().max(120).nullish(), priority: z.coerce.number().int().min(0).max(1000),
 });
 export const checklistFlowSchema = z.object({ nodes: z.array(flowNodeSchema).min(2).max(200), edges: z.array(flowEdgeSchema).min(1).max(500) });
@@ -149,7 +150,6 @@ export const startChecklistExecutionSchema = z.object({
   checklistId: z.string().uuid(),
   branchId: z.string().trim().min(1).max(120),
   saleNumber: z.string().trim().min(1).max(120),
-  customerName: z.string().trim().max(300).nullish(),
 });
 
 export const saveChecklistExecutionSchema = z.object({

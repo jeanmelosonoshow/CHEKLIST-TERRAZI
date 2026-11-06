@@ -25,7 +25,7 @@ export async function POST(_request: Request, context: { params: Promise<{ id: s
     const flow = { nodes, edges: storedEdges.map((edge) => ({ sourceKey: keys.get(edge.sourceNodeId)!, targetKey: keys.get(edge.targetNodeId)!, condition: edge.condition, conditionValue: edge.conditionValue, label: edge.label, priority: edge.priority })) };
     const errors = validateFlowDefinition(flow);
     if (errors.length) return NextResponse.json({ error: errors[0], details: errors }, { status: 409 });
-    for (const node of nodes.filter((item) => item.type === "automatic_decision")) {
+    for (const node of nodes.filter((item) => item.type === "automatic_decision" || (item.type === "start" && item.automationSource))) {
       const validation = validateDashboardQuery(node.querySql || "");
       if (!validation.valid) return NextResponse.json({ error: `${node.title}: ${validation.error}` }, { status: 409 });
     }

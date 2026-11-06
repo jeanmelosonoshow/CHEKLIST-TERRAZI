@@ -28,7 +28,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
   const [node] = await db.select().from(checklistFlowNodes).where(and(eq(checklistFlowNodes.id, parsed.data.nodeId), eq(checklistFlowNodes.checklistId, execution.checklistId))).limit(1);
   if (!node) return NextResponse.json({ error: "Bloco do fluxo não encontrado." }, { status: 404 });
   let answer = parsed.data.answer;
-  if (node.type === "automatic_decision") answer = await executeFlowAutomation(node, execution, auth.user);
+  if (node.type === "automatic_decision") answer = (await executeFlowAutomation(node, execution, auth.user)).value;
   if ((node.type === "question" || node.type === "action") && node.required && answerIsEmpty(answer)) return NextResponse.json({ error: `Responda: ${node.title}.` }, { status: 409 });
   if (!answerIsEmpty(answer) && (node.type === "question" || node.type === "action")) {
     const invalid = (node.fieldType === "boolean" && typeof answer !== "boolean") ||

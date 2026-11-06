@@ -29,4 +29,7 @@ describe("dashboard query", () => {
       { branchId: "20", employeeId: 752, category: "ADMIN", saleNumber: "12345" },
     ).params).toEqual(["20", "12345"]);
   });
+  it("accepts numerosaida as an alias for flow queries", () => {
+    expect(prepareDashboardQuery("SELECT * FROM SAIDA WHERE NUMEROSAIDA = :numerosaida", { branchId: "20", employeeId: 752, category: null, saleNumber: "99" }).params).toEqual(["99"]);
+  });
 });

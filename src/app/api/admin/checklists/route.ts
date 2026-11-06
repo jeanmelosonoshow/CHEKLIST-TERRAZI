@@ -14,7 +14,7 @@ export async function POST(request: Request) {
   if (parsed.data.flow) {
     const errors = validateFlowDefinition(parsed.data.flow);
     if (errors.length) return NextResponse.json({ error: errors[0], details: errors }, { status: 400 });
-    for (const node of parsed.data.flow.nodes.filter((item) => item.type === "automatic_decision")) {
+    for (const node of parsed.data.flow.nodes.filter((item) => item.type === "automatic_decision" || (item.type === "start" && item.automationSource))) {
       const validation = validateDashboardQuery(node.querySql || "");
       if (!validation.valid) return NextResponse.json({ error: `${node.title}: ${validation.error}` }, { status: 400 });
     }
@@ -32,6 +32,7 @@ export async function POST(request: Request) {
         checklistId: created.id, nodeKey: node.nodeKey, type: node.type, title: node.title, description: node.description || null,
         fieldType: node.fieldType || null, required: node.required, sourceKey: node.sourceKey || null,
         automationSource: node.automationSource || null, querySql: node.querySql || null, resultField: node.resultField,
+        customerResultField: node.customerResultField || null,
         outcome: node.outcome || null, position: node.position,
       }))).returning({ id: checklistFlowNodes.id, nodeKey: checklistFlowNodes.nodeKey });
       const ids = new Map(inserted.map((node) => [node.nodeKey, node.id]));

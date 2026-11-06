@@ -25,4 +25,14 @@ describe("checklist flow", () => {
     expect(normalizeDecisionValue("SIM")).toBe(true);
     expect(selectNextEdge(validFlow.edges.filter((edge) => edge.sourceKey === "aprovado"), "N")?.targetKey).toBe("falha");
   });
+  it("supports numeric conditions for entry validation", () => {
+    const edges = [{ sourceKey: "inicio", targetKey: "proximo", condition: "greater_than" as const, conditionValue: 0, priority: 0 }];
+    expect(selectNextEdge(edges, 1)?.targetKey).toBe("proximo");
+    expect(selectNextEdge(edges, 0)).toBeNull();
+  });
+  it("does not allow an unconditional connector on automatic entry validation", () => {
+    const flow = structuredClone(validFlow);
+    Object.assign(flow.nodes[0], { automationSource: "firebird", querySql: "SELECT COUNT(*) AS QTDE FROM SAIDA", resultField: "QTDE" });
+    expect(validateFlowDefinition(flow).join(" ")).toMatch(/não pode usar conexão.*Sempre/i);
+  });
 });

@@ -28,7 +28,7 @@ export const syncStatusEnum = pgEnum("status_sincronizacao", ["running", "succes
 export const optionSourceTypeEnum = pgEnum("tipo_fonte_opcoes", ["synchronized", "static", "postgres", "firebird"]);
 export const checklistExecutionStatusEnum = pgEnum("status_execucao_checklist", ["pending", "in_progress", "completed", "cancelled"]);
 export const checklistFlowNodeTypeEnum = pgEnum("tipo_no_fluxo_checklist", ["start", "question", "automatic_decision", "action", "observation", "end"]);
-export const checklistFlowConditionEnum = pgEnum("condicao_fluxo_checklist", ["always", "equals", "not_equals"]);
+export const checklistFlowConditionEnum = pgEnum("condicao_fluxo_checklist", ["always", "equals", "not_equals", "greater_than", "greater_or_equal", "less_than", "less_or_equal"]);
 export const checklistFlowOutcomeEnum = pgEnum("resultado_fluxo_checklist", ["success", "failure"]);
 export const checklistAutomationSourceEnum = pgEnum("origem_automacao_checklist", ["postgres", "firebird"]);
 export const dashboardVisualizationEnum = pgEnum("visualizacao_cenario_dashboard", [
@@ -201,6 +201,7 @@ export const checklistFlowNodes = pgTable(
     automationSource: checklistAutomationSourceEnum("origem_automacao"),
     querySql: text("sql_consulta"),
     resultField: text("campo_resultado").default("RESULTADO").notNull(),
+    customerResultField: text("campo_resultado_cliente"),
     outcome: checklistFlowOutcomeEnum("resultado_final"),
     position: integer("posicao").notNull(),
     configuration: jsonb("configuracao").$type<Record<string, unknown>>().default({}).notNull(),
