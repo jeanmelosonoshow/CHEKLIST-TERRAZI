@@ -83,7 +83,8 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
       const ids = new Map(inserted.map((node) => [node.nodeKey, node.id]));
       await tx.insert(checklistFlowEdges).values(parsed.data.flow.edges.map((edge) => ({
         checklistId: checklist.id, sourceNodeId: ids.get(edge.sourceKey)!, targetNodeId: ids.get(edge.targetKey)!,
-        condition: edge.condition, conditionValue: edge.conditionValue, label: edge.label || null, priority: edge.priority,
+        condition: edge.condition, conditionValue: edge.conditionValue, label: edge.label || null,
+        sourcePort: edge.sourcePort || "right", targetPort: edge.targetPort || "left", priority: edge.priority,
       })));
     }
     return checklist;

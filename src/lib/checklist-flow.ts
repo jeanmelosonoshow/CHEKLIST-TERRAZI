@@ -1,5 +1,6 @@
 export type FlowNodeType = "start" | "question" | "automatic_decision" | "action" | "observation" | "end";
 export type FlowFieldType = "short_text" | "long_text" | "number" | "date" | "boolean" | "single_select" | "multi_select";
+export type FlowPort = "top" | "right" | "bottom" | "left";
 export type FlowNodeDefinition = {
   id?: string; nodeKey: string; type: FlowNodeType; title: string; description?: string | null;
   fieldType?: FlowFieldType | null; required?: boolean; sourceKey?: string | null;
@@ -9,7 +10,7 @@ export type FlowNodeDefinition = {
 };
 export type FlowEdgeDefinition = {
   sourceKey: string; targetKey: string; condition: "always" | "equals" | "not_equals" | "greater_than" | "greater_or_equal" | "less_than" | "less_or_equal";
-  conditionValue?: unknown; label?: string | null; priority: number;
+  conditionValue?: unknown; label?: string | null; sourcePort?: FlowPort; targetPort?: FlowPort; priority: number;
 };
 export type FlowDefinition = { nodes: FlowNodeDefinition[]; edges: FlowEdgeDefinition[] };
 

@@ -229,6 +229,8 @@ export const checklistFlowEdges = pgTable(
     condition: checklistFlowConditionEnum("condicao").default("always").notNull(),
     conditionValue: jsonb("valor_condicao").$type<unknown>(),
     label: text("rotulo"),
+    sourcePort: text("porta_origem").$type<"top" | "right" | "bottom" | "left">().default("right").notNull(),
+    targetPort: text("porta_destino").$type<"top" | "right" | "bottom" | "left">().default("left").notNull(),
     priority: integer("prioridade").default(0).notNull(),
   },
   (table) => [index("conexoes_fluxo_checklist_origem_idx").on(table.sourceNodeId, table.priority)],

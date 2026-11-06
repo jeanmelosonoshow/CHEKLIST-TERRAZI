@@ -55,7 +55,7 @@ const flowNodeSchema = z.object({
 const flowEdgeSchema = z.object({
   sourceKey: z.string().trim().min(2).max(100), targetKey: z.string().trim().min(2).max(100),
   condition: z.enum(["always", "equals", "not_equals", "greater_than", "greater_or_equal", "less_than", "less_or_equal"]), conditionValue: z.unknown().optional(),
-  label: z.string().trim().max(120).nullish(), priority: z.coerce.number().int().min(0).max(1000),
+  label: z.string().trim().max(120).nullish(), sourcePort: z.enum(["top", "right", "bottom", "left"]).optional(), targetPort: z.enum(["top", "right", "bottom", "left"]).optional(), priority: z.coerce.number().int().min(0).max(1000),
 });
 export const checklistFlowSchema = z.object({ nodes: z.array(flowNodeSchema).min(2).max(200), edges: z.array(flowEdgeSchema).min(1).max(500) });
 

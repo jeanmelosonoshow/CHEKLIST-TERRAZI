@@ -246,18 +246,29 @@ button.dashboardWidget:disabled { cursor: default; opacity: 1; }
 .flowToolbar button, .flowConnections button { min-height: 36px; padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; color: var(--green-dark); background: var(--paper); cursor: pointer; font-size: .72rem; font-weight: 750; }
 .flowToolbar .flowTestButton { margin-left: auto; color: white; border-color: var(--green); background: var(--green); }
 .flowWorkspace { display: grid; min-height: 570px; grid-template-columns: minmax(600px, 1fr) 410px; }
-.flowCanvas { padding: 20px; overflow: auto; border-right: 1px solid var(--line); background-image: radial-gradient(#ccd8d2 1px, transparent 1px); background-size: 18px 18px; }
+.flowCanvas { display: flex; min-width: 0; padding: 20px; overflow: hidden; flex-direction: column; border-right: 1px solid var(--line); }
 .flowCanvasHeader { display: flex; margin-bottom: 20px; padding: 14px; align-items: center; justify-content: space-between; gap: 20px; border: 1px solid var(--line); border-radius: 11px; background: rgba(255,255,255,.94); }
 .flowCanvasHeader h3, .flowCanvasHeader p { margin: 0; }
 .flowCanvasHeader p, .flowCanvasHeader span { color: var(--muted); font-size: .7rem; }
-.flowNodeGrid { position: relative; }
+.flowCanvasControls { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 6px; }
+.flowCanvasControls b { min-width: 42px; color: var(--green-dark); font-size: .7rem; text-align: center; }
+.flowCanvasControls button { min-height: 30px; padding: 5px 8px; border: 1px solid var(--line); border-radius: 7px; color: var(--green-dark); background: white; cursor: pointer; font-size: .68rem; font-weight: 750; }
+.flowCanvasViewport { position: relative; min-height: 620px; overflow: auto; overscroll-behavior: contain; border: 1px solid var(--line); border-radius: 11px; background-color: #f7faf8; background-image: radial-gradient(#ccd8d2 1px, transparent 1px); background-size: 18px 18px; cursor: grab; touch-action: none; }
+.flowCanvasViewport.panning { cursor: grabbing; user-select: none; }
+.flowCanvasStage { position: relative; }
+.flowNodeGrid { position: relative; transform-origin: top left; }
 .flowConnectors { position: absolute; inset: 0; overflow: visible; pointer-events: none; }
 .flowConnectors path { fill: none; stroke: #8ba99d; stroke-width: 2; }
 .flowConnectors marker path { fill: var(--green); stroke: none; }
 .flowConnectors text { fill: var(--muted); font-size: 10px; font-weight: 700; text-anchor: middle; }
-.flowNode { position: absolute; display: flex; width: 230px; min-height: 128px; padding: 16px; overflow: hidden; flex-direction: column; align-items: flex-start; gap: 7px; border: 2px solid transparent; border-radius: 13px; color: var(--ink); background: var(--paper); box-shadow: 0 8px 22px rgba(20,50,38,.08); cursor: grab; touch-action: none; user-select: none; text-align: left; }
+.flowNode { position: absolute; display: flex; width: 230px; min-height: 128px; padding: 16px; overflow: visible; flex-direction: column; align-items: flex-start; gap: 7px; border: 2px solid transparent; border-radius: 13px; color: var(--ink); background: var(--paper); box-shadow: 0 8px 22px rgba(20,50,38,.08); cursor: grab; touch-action: none; user-select: none; text-align: left; }
 .flowNode.dragging { z-index: 3; cursor: grabbing; box-shadow: 0 18px 35px rgba(20,50,38,.18); }
-.flowNode::after { position: absolute; right: -16px; top: calc(50% - 5px); width: 10px; height: 10px; border-radius: 50%; background: var(--green); content: ""; }
+.flowPort { position: absolute; z-index: 2; display: block; width: 10px; height: 10px; border: 2px solid #afc2b9; border-radius: 50%; background: white; pointer-events: none; }
+.flowPort.active { border-color: var(--green); background: var(--green); box-shadow: 0 0 0 3px rgba(18,107,80,.12); }
+.flowPort-top { top: -6px; left: calc(50% - 5px); }
+.flowPort-right { right: -6px; top: calc(50% - 5px); }
+.flowPort-bottom { bottom: -6px; left: calc(50% - 5px); }
+.flowPort-left { left: -6px; top: calc(50% - 5px); }
 .flowNode.selected { border-color: var(--green); box-shadow: 0 0 0 3px rgba(18,107,80,.12); }
 .flowNode small { color: var(--green); font-size: .62rem; font-weight: 850; letter-spacing: .07em; text-transform: uppercase; }
 .flowNode strong { font-size: .86rem; line-height: 1.35; }

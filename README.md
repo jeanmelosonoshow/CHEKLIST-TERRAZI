@@ -142,6 +142,8 @@ A migration `0013_revisoes_checklist.sql` separa os estados revogado e arquivado
 
 A migration `0014_itens_venda_fluxo.sql` permite mapear, no bloco inicial, os aliases de código, descrição e quantidade dos produtos retornados pela validação da venda. A execução conserva essa fotografia dos itens junto da demanda e também guarda a resposta parcial da etapa atual quando o usuário escolhe **Salvar e sair**. A simulação mantém o mesmo progresso apenas no navegador e continua sem gravar dados operacionais no PostgreSQL.
 
+A migration `0015_portas_conexoes_fluxo.sql` adiciona portas independentes de origem e destino aos conectores. O construtor permite escolher se cada seta sai ou entra pelo topo, direita, base ou esquerda do bloco, além de oferecer uma área ampliada com zoom e deslocamento pelo fundo do canvas.
+
 A seção **Etapas** possui permissão própria por categoria e um painel responsivo preparado para apresentar uma linha por filial, venda e cliente. O molde inicial contém Separação, Desmontagem, Impermeabilização, Entrega e Montagem. A persistência operacional ficará desacoplada até que a origem dos selects e a estratégia de salvamento sejam definidas.
 
 O MD5 existe apenas por compatibilidade e não é adequado para novas senhas. Uma fase futura pode migrar gradualmente para Argon2/bcrypt quando a sincronização não sobrescrever mais o valor.
