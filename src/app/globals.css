@@ -244,6 +244,7 @@ button.dashboardWidget:disabled { cursor: default; opacity: 1; }
 .flowToolbar { display: flex; min-height: 58px; padding: 9px 12px; align-items: center; flex-wrap: wrap; gap: 8px; border-bottom: 1px solid var(--line); background: var(--paper); }
 .flowToolbar strong { margin-right: 8px; font-size: .75rem; text-transform: uppercase; }
 .flowToolbar button, .flowConnections button { min-height: 36px; padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; color: var(--green-dark); background: var(--paper); cursor: pointer; font-size: .72rem; font-weight: 750; }
+.flowToolbar .flowTestButton { margin-left: auto; color: white; border-color: var(--green); background: var(--green); }
 .flowWorkspace { display: grid; min-height: 570px; grid-template-columns: minmax(600px, 1fr) 410px; }
 .flowCanvas { padding: 20px; overflow: auto; border-right: 1px solid var(--line); background-image: radial-gradient(#ccd8d2 1px, transparent 1px); background-size: 18px 18px; }
 .flowCanvasHeader { display: flex; margin-bottom: 20px; padding: 14px; align-items: center; justify-content: space-between; gap: 20px; border: 1px solid var(--line); border-radius: 11px; background: rgba(255,255,255,.94); }
@@ -293,6 +294,15 @@ button.dashboardWidget:disabled { cursor: default; opacity: 1; }
 .flowOutcome > span { display: grid; width: 54px; height: 54px; margin-bottom: 15px; place-items: center; border-radius: 50%; color: white; background: var(--green); font-size: 1.4rem; }
 .flowOutcome.failure > span { background: var(--danger); }
 .flowOutcome p { margin: 0; color: var(--muted); }
+.flowSimulationBackdrop { z-index: 45; }
+.flowSimulationModal { width: min(760px, 100%); }
+.flowSimulationStart { display: grid; margin-top: 22px; gap: 18px; }
+.flowSimulationStart > .primaryButton { justify-self: end; }
+.simulationContext { display: flex; margin: 18px 0; flex-wrap: wrap; gap: 8px; }
+.simulationContext span { padding: 7px 10px; border-radius: 999px; color: var(--muted); background: #f0f4f2; font-size: .72rem; }
+.simulationError { margin-top: 16px; }
+.status.revoked { color: #7a5317; background: #fff0cf; }
+.checklistLifecycleActions { display: contents; }
 @media (hover: hover) {
   .primaryButton:hover { background: var(--green-dark); }
   .secondaryButton:hover { border-color: #a9bbb2; background: #f8fbf9; }

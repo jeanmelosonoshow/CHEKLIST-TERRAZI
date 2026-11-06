@@ -23,7 +23,7 @@ export const fieldTypeEnum = pgEnum("tipo_campo_lista_verificacao", [
   "single_select",
   "multi_select",
 ]);
-export const checklistStatusEnum = pgEnum("status_lista_verificacao", ["draft", "published", "archived"]);
+export const checklistStatusEnum = pgEnum("status_lista_verificacao", ["draft", "published", "revoked", "archived"]);
 export const syncStatusEnum = pgEnum("status_sincronizacao", ["running", "success", "failed"]);
 export const optionSourceTypeEnum = pgEnum("tipo_fonte_opcoes", ["synchronized", "static", "postgres", "firebird"]);
 export const checklistExecutionStatusEnum = pgEnum("status_execucao_checklist", ["pending", "in_progress", "completed", "cancelled"]);
@@ -150,6 +150,8 @@ export const checklists = pgTable("listas_verificacao", {
   title: text("titulo").notNull(),
   description: text("descricao"),
   status: checklistStatusEnum("status").default("draft").notNull(),
+  sourceChecklistId: uuid("id_lista_origem"),
+  version: integer("versao").default(1).notNull(),
   createdBy: uuid("criado_por").notNull().references(() => users.id),
   createdAt: timestamp("criado_em", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("atualizado_em", { withTimezone: true }).defaultNow().notNull(),

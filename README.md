@@ -138,6 +138,8 @@ A migration `0011_fluxos_condicionais_checklist.sql` adiciona o motor de fluxos 
 
 A migration `0012_validacao_inicial_venda.sql` adiciona comparações numéricas aos conectores (`>`, `>=`, `<` e `<=`) e o mapeamento opcional do nome do cliente retornado pela consulta. O bloco inicial pode executar uma consulta antes de criar a demanda; se nenhuma condição de aprovação corresponder ao resultado, nenhuma execução é gravada. Isso permite validar filial e número da saída com `QTDE > 0` e obter o cliente diretamente do banco.
 
+A migration `0013_revisoes_checklist.sql` separa os estados revogado e arquivado e registra a origem/versão dos modelos. A ação **Revisar** revoga o publicado e cria atomicamente um novo rascunho editável; **Clonar** mantém o original e cria uma cópia em rascunho; **Arquivar** é uma ação independente. O construtor também permite simular rascunhos com filial e número da saída sem criar registros de execução, respostas ou eventos no PostgreSQL.
+
 A seção **Etapas** possui permissão própria por categoria e um painel responsivo preparado para apresentar uma linha por filial, venda e cliente. O molde inicial contém Separação, Desmontagem, Impermeabilização, Entrega e Montagem. A persistência operacional ficará desacoplada até que a origem dos selects e a estratégia de salvamento sejam definidas.
 
 O MD5 existe apenas por compatibilidade e não é adequado para novas senhas. Uma fase futura pode migrar gradualmente para Argon2/bcrypt quando a sincronização não sobrescrever mais o valor.

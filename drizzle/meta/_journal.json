@@ -92,6 +92,13 @@
       "when": 1794412800000,
       "tag": "0012_validacao_inicial_venda",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1794499200000,
+      "tag": "0013_revisoes_checklist",
+      "breakpoints": true
     }
   ]
 }

@@ -162,3 +162,12 @@ export const advanceChecklistFlowSchema = z.object({
   answer: z.unknown().optional(),
   observation: z.string().trim().max(5000).nullish(),
 });
+
+export const simulateChecklistFlowSchema = z.object({
+  flow: checklistFlowSchema,
+  branchId: z.string().trim().min(1).max(120),
+  saleNumber: z.string().trim().min(1).max(120),
+  nodeKey: z.string().trim().max(100).nullish(),
+  answer: z.unknown().optional(),
+  observation: z.string().trim().max(5000).nullish(),
+});
