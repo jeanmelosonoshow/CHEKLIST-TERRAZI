@@ -44,6 +44,11 @@ const flowNodeSchema = z.object({
   querySql: z.string().trim().max(50_000).nullish(),
   resultField: z.string().trim().min(1).max(100).default("RESULTADO"),
   customerResultField: z.string().trim().max(100).nullish(),
+  productCodeField: z.string().trim().max(100).nullish(),
+  productDescriptionField: z.string().trim().max(100).nullish(),
+  productQuantityField: z.string().trim().max(100).nullish(),
+  x: z.coerce.number().min(0).max(10000).optional(),
+  y: z.coerce.number().min(0).max(10000).optional(),
   outcome: z.enum(["success", "failure"]).nullish(),
   position: z.coerce.number().int().min(0).max(10_000),
 });

@@ -33,6 +33,8 @@ export async function POST(request: Request) {
         fieldType: node.fieldType || null, required: node.required, sourceKey: node.sourceKey || null,
         automationSource: node.automationSource || null, querySql: node.querySql || null, resultField: node.resultField,
         customerResultField: node.customerResultField || null,
+        productCodeField: node.productCodeField || null, productDescriptionField: node.productDescriptionField || null, productQuantityField: node.productQuantityField || null,
+        configuration: { x: node.x, y: node.y },
         outcome: node.outcome || null, position: node.position,
       }))).returning({ id: checklistFlowNodes.id, nodeKey: checklistFlowNodes.nodeKey });
       const ids = new Map(inserted.map((node) => [node.nodeKey, node.id]));

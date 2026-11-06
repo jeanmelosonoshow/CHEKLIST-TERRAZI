@@ -4,7 +4,8 @@ export type FlowNodeDefinition = {
   id?: string; nodeKey: string; type: FlowNodeType; title: string; description?: string | null;
   fieldType?: FlowFieldType | null; required?: boolean; sourceKey?: string | null;
   automationSource?: "postgres" | "firebird" | null; querySql?: string | null; resultField?: string;
-  customerResultField?: string | null; outcome?: "success" | "failure" | null; position: number; configurationSelected?: boolean;
+  customerResultField?: string | null; productCodeField?: string | null; productDescriptionField?: string | null; productQuantityField?: string | null;
+  x?: number; y?: number; outcome?: "success" | "failure" | null; position: number; configurationSelected?: boolean;
 };
 export type FlowEdgeDefinition = {
   sourceKey: string; targetKey: string; condition: "always" | "equals" | "not_equals" | "greater_than" | "greater_or_equal" | "less_than" | "less_or_equal";

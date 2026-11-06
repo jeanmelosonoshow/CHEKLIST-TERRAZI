@@ -140,6 +140,8 @@ A migration `0012_validacao_inicial_venda.sql` adiciona comparações numéricas
 
 A migration `0013_revisoes_checklist.sql` separa os estados revogado e arquivado e registra a origem/versão dos modelos. A ação **Revisar** revoga o publicado e cria atomicamente um novo rascunho editável; **Clonar** mantém o original e cria uma cópia em rascunho; **Arquivar** é uma ação independente. O construtor também permite simular rascunhos com filial e número da saída sem criar registros de execução, respostas ou eventos no PostgreSQL.
 
+A migration `0014_itens_venda_fluxo.sql` permite mapear, no bloco inicial, os aliases de código, descrição e quantidade dos produtos retornados pela validação da venda. A execução conserva essa fotografia dos itens junto da demanda e também guarda a resposta parcial da etapa atual quando o usuário escolhe **Salvar e sair**. A simulação mantém o mesmo progresso apenas no navegador e continua sem gravar dados operacionais no PostgreSQL.
+
 A seção **Etapas** possui permissão própria por categoria e um painel responsivo preparado para apresentar uma linha por filial, venda e cliente. O molde inicial contém Separação, Desmontagem, Impermeabilização, Entrega e Montagem. A persistência operacional ficará desacoplada até que a origem dos selects e a estratégia de salvamento sejam definidas.
 
 O MD5 existe apenas por compatibilidade e não é adequado para novas senhas. Uma fase futura pode migrar gradualmente para Argon2/bcrypt quando a sincronização não sobrescrever mais o valor.

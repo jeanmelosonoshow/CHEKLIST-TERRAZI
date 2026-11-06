@@ -9,6 +9,15 @@ export function readAutomationField(row: Record<string, unknown>, name: string) 
   return key ? row[key] : undefined;
 }
 
+export function mapAutomationItems(rows: Record<string, unknown>[], mapping: { productCodeField?: string | null; productDescriptionField?: string | null; productQuantityField?: string | null }) {
+  if (!mapping.productCodeField || !mapping.productDescriptionField || !mapping.productQuantityField) return [];
+  return rows.flatMap((row) => {
+    const code = readAutomationField(row, mapping.productCodeField!); const description = readAutomationField(row, mapping.productDescriptionField!); const quantity = readAutomationField(row, mapping.productQuantityField!);
+    if (code === undefined || code === null || description === undefined || description === null) return [];
+    return [{ code: String(code), description: String(description), quantity: typeof quantity === "number" ? quantity : String(quantity ?? "") }];
+  });
+}
+
 export async function executeFlowAutomation(node: { automationSource: "postgres" | "firebird" | null; querySql: string | null; resultField: string }, execution: { saleNumber: string; branchId: string }, user: User) {
   if (!node.automationSource || !node.querySql) throw Object.assign(new Error("Decisão automática sem consulta configurada."), { status: 409 });
   const validation = validateDashboardQuery(node.querySql);
@@ -25,5 +34,5 @@ export async function executeFlowAutomation(node: { automationSource: "postgres"
   if (!rows.length) throw Object.assign(new Error("A consulta automática não retornou resultado."), { status: 409 });
   const value = readAutomationField(rows[0], node.resultField);
   if (value === undefined || value === null) throw Object.assign(new Error(`O campo ${node.resultField} não foi retornado pela consulta.`), { status: 409 });
-  return { value: normalizeDecisionValue(value), row: rows[0] };
+  return { value: normalizeDecisionValue(value), row: rows[0], rows };
 }

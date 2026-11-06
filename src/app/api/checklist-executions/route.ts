@@ -6,7 +6,7 @@ import { getApiPermission } from "@/lib/api-auth";
 import { isAdministrator } from "@/lib/permissions";
 import { startChecklistExecutionSchema } from "@/lib/validation";
 import { selectNextEdge } from "@/lib/checklist-flow";
-import { executeFlowAutomation, readAutomationField } from "@/lib/flow-automation";
+import { executeFlowAutomation, mapAutomationItems, readAutomationField } from "@/lib/flow-automation";
 
 export async function POST(request: Request) {
   const auth = await getApiPermission("viewChecklist");
@@ -24,6 +24,7 @@ export async function POST(request: Request) {
   const [startNode] = await db.select().from(checklistFlowNodes).where(and(eq(checklistFlowNodes.checklistId, checklist.id), eq(checklistFlowNodes.type, "start"))).limit(1);
   let currentNodeId: string | null = null;
   let customerName: string | null = null;
+  let saleItems: Array<{ code: string; description: string; quantity: string | number }> = [];
   if (startNode) {
     const edges = await db.select().from(checklistFlowEdges).where(eq(checklistFlowEdges.sourceNodeId, startNode.id)).orderBy(checklistFlowEdges.priority);
     let selectedTargetNodeId: string | null = edges[0]?.targetNodeId ?? null;
@@ -33,9 +34,11 @@ export async function POST(request: Request) {
         const selectedEdge = selectNextEdge(edges.map((edge) => ({ sourceKey: startNode.nodeKey, targetKey: edge.targetNodeId, condition: edge.condition, conditionValue: edge.conditionValue, label: edge.label, priority: edge.priority })), result.value);
         selectedTargetNodeId = selectedEdge?.targetKey ?? null;
         if (startNode.customerResultField) {
-          const customer = readAutomationField(result.row, startNode.customerResultField);
+          const customerRow = result.rows.find((row) => readAutomationField(row, startNode.customerResultField!) !== null && readAutomationField(row, startNode.customerResultField!) !== undefined) || result.row;
+          const customer = readAutomationField(customerRow, startNode.customerResultField);
           customerName = customer === null || customer === undefined ? null : String(customer);
         }
+        saleItems = mapAutomationItems(result.rows, startNode);
       } catch (error) {
         const status = error instanceof Error && "status" in error ? Number(error.status) || 409 : 409;
         return NextResponse.json({ error: error instanceof Error ? error.message : "Não foi possível validar a venda." }, { status });
@@ -50,7 +53,7 @@ export async function POST(request: Request) {
     execution = await db.transaction(async (tx) => {
       const [created] = await tx.insert(checklistExecutions).values({
         checklistId: checklist.id, branchId: parsed.data.branchId, saleNumber: parsed.data.saleNumber,
-        customerName, assignedTo: auth.user.id, createdBy: auth.user.id, currentNodeId,
+        customerName, saleItems, assignedTo: auth.user.id, createdBy: auth.user.id, currentNodeId,
       }).returning();
       await tx.insert(checklistResponses).values({ checklistId: checklist.id, executionId: created.id, userId: auth.user.id, answers: {} });
       await tx.insert(checklistExecutionEvents).values({ executionId: created.id, event: "created", userId: auth.user.id, data: { branchId: created.branchId, saleNumber: created.saleNumber } });

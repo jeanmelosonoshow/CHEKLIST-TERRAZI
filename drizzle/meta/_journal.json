@@ -99,6 +99,13 @@
       "when": 1794499200000,
       "tag": "0013_revisoes_checklist",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1794585600000,
+      "tag": "0014_itens_venda_fluxo",
+      "breakpoints": true
     }
   ]
 }

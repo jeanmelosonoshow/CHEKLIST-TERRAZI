@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getApiAnyPermission } from "@/lib/api-auth";
 import { answerIsEmpty } from "@/lib/checklist-execution";
 import { selectNextEdge, validateFlowDefinition, type FlowNodeDefinition } from "@/lib/checklist-flow";
-import { executeFlowAutomation, readAutomationField } from "@/lib/flow-automation";
+import { executeFlowAutomation, mapAutomationItems, readAutomationField } from "@/lib/flow-automation";
 import { getOptionSource, resolveOptionSource } from "@/lib/option-sources";
 import { simulateChecklistFlowSchema } from "@/lib/validation";
 import { rateLimit } from "@/lib/rate-limit";
@@ -24,6 +24,7 @@ export async function POST(request: Request) {
   let node: FlowNodeDefinition | undefined;
   let value = parsed.data.answer;
   let customerName: string | null = null;
+  let saleItems: Array<{ code: string; description: string; quantity: string | number }> = [];
   if (!parsed.data.nodeKey) {
     node = flow.nodes.find((item) => item.type === "start");
     if (!node) return NextResponse.json({ error: "Bloco inicial não encontrado." }, { status: 409 });
@@ -32,9 +33,12 @@ export async function POST(request: Request) {
       if (result instanceof NextResponse) return result;
       value = result.value;
       if (node.customerResultField) {
-        const customer = readAutomationField(result.row, node.customerResultField);
+        const customerResultField = node.customerResultField;
+        const customerRow = result.rows.find((row) => readAutomationField(row, customerResultField) !== null && readAutomationField(row, customerResultField) !== undefined) || result.row;
+        const customer = readAutomationField(customerRow, customerResultField);
         customerName = customer === undefined || customer === null ? null : String(customer);
       }
+      saleItems = mapAutomationItems(result.rows, node);
     }
   } else {
     node = nodes.get(parsed.data.nodeKey);
@@ -55,7 +59,7 @@ export async function POST(request: Request) {
   const options = target.sourceKey ? await resolveOptions(target.sourceKey, auth.user, branchId) : [];
   return NextResponse.json({
     completed: target.type === "end", outcome: target.type === "end" ? target.outcome : null,
-    customerName, currentNode: target.type === "end" ? null : { ...target, options },
+    customerName, saleItems, currentNode: target.type === "end" ? null : { ...target, options },
     step: { nodeKey: node.nodeKey, title: node.title, answer: value, automatic: Boolean(node.automationSource) },
   });
 }

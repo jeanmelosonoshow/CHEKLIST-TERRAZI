@@ -20,7 +20,8 @@ export async function GET(_request: Request, context: { params: Promise<{ id: st
   if (!checklist) return NextResponse.json({ error: "Checklist não encontrado." }, { status: 404 });
   if (checklist.status !== "draft") return NextResponse.json({ error: "Somente checklists em rascunho podem ser editados." }, { status: 409 });
   const fields = await db.select({ id: checklistFields.id, code: checklistFields.code, label: checklistFields.label, type: checklistFields.type, required: checklistFields.required, sourceKey: checklistFields.sourceKey }).from(checklistFields).where(eq(checklistFields.checklistId, checklist.id)).orderBy(asc(checklistFields.position));
-  const nodes = await db.select().from(checklistFlowNodes).where(eq(checklistFlowNodes.checklistId, checklist.id)).orderBy(asc(checklistFlowNodes.position));
+  const storedNodes = await db.select().from(checklistFlowNodes).where(eq(checklistFlowNodes.checklistId, checklist.id)).orderBy(asc(checklistFlowNodes.position));
+  const nodes = storedNodes.map((node) => ({ ...node, x: typeof node.configuration.x === "number" ? node.configuration.x : undefined, y: typeof node.configuration.y === "number" ? node.configuration.y : undefined }));
   const edges = nodes.length ? await db.select().from(checklistFlowEdges).where(eq(checklistFlowEdges.checklistId, checklist.id)).orderBy(asc(checklistFlowEdges.priority)) : [];
   const keys = new Map(nodes.map((node) => [node.id, node.nodeKey]));
   const flow = nodes.length ? { nodes, edges: edges.map((edge) => ({ ...edge, sourceKey: keys.get(edge.sourceNodeId), targetKey: keys.get(edge.targetNodeId) })) } : null;
@@ -75,6 +76,8 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
         fieldType: node.fieldType || null, required: node.required, sourceKey: node.sourceKey || null,
         automationSource: node.automationSource || null, querySql: node.querySql || null, resultField: node.resultField,
         customerResultField: node.customerResultField || null,
+        productCodeField: node.productCodeField || null, productDescriptionField: node.productDescriptionField || null, productQuantityField: node.productQuantityField || null,
+        configuration: { x: node.x, y: node.y },
         outcome: node.outcome || null, position: node.position,
       }))).returning({ id: checklistFlowNodes.id, nodeKey: checklistFlowNodes.nodeKey });
       const ids = new Map(inserted.map((node) => [node.nodeKey, node.id]));
