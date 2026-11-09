@@ -1,4 +1,4 @@
-import { and, asc, desc, eq } from "drizzle-orm";
+import { asc, desc, eq } from "drizzle-orm";
 import { AppShell } from "@/components/AppShell";
 import { ChecklistExecutionWorkspace } from "@/components/ChecklistExecutionWorkspace";
 import { db } from "@/db";
@@ -16,7 +16,7 @@ export default async function ChecklistsPage() {
     db.select({ execution: checklistExecutions, checklistTitle: checklists.title, checklistCode: checklists.code, currentNodeTitle: checklistFlowNodes.title, currentNodeType: checklistFlowNodes.type, currentNodeInterval: checklistFlowNodes.autoIntervalMinutes })
       .from(checklistExecutions).innerJoin(checklists, eq(checklistExecutions.checklistId, checklists.id))
       .leftJoin(checklistFlowNodes, eq(checklistExecutions.currentNodeId, checklistFlowNodes.id))
-      .where(isAdministrator(user) ? undefined : and(eq(checklistExecutions.branchId, user.branchId)))
+      .where(isAdministrator(user) ? undefined : eq(checklistExecutions.assignedTo, user.id))
       .orderBy(desc(checklistExecutions.updatedAt)),
   ]);
   const executions = executionRows.map(({ execution, ...row }) => ({ ...execution, ...row,
@@ -25,6 +25,6 @@ export default async function ChecklistsPage() {
     createdAt: execution.createdAt.toISOString(), updatedAt: execution.updatedAt.toISOString(),
   }));
   return <AppShell user={user} permissions={permissions} active="checklists">
-    <ChecklistExecutionWorkspace templates={templates} initialExecutions={executions} defaultBranchId={user.branchId} administrator={isAdministrator(user)} />
+    <ChecklistExecutionWorkspace templates={templates} initialExecutions={executions} defaultBranchId={user.branchId} />
   </AppShell>;
 }

@@ -3,7 +3,6 @@ import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { checklistExecutionEvents, checklistExecutions, checklistFlowEdges, checklistFlowNodes, checklistResponses, checklists } from "@/db/schema";
 import { getApiPermission } from "@/lib/api-auth";
-import { isAdministrator } from "@/lib/permissions";
 import { startChecklistExecutionSchema } from "@/lib/validation";
 import { selectNextEdge } from "@/lib/checklist-flow";
 import { executeFlowAutomation, mapAutomationItems, readAutomationField } from "@/lib/flow-automation";
@@ -13,7 +12,6 @@ export async function POST(request: Request) {
   if ("error" in auth) return auth.error;
   const parsed = startChecklistExecutionSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Informe checklist, filial e venda." }, { status: 400 });
-  if (!isAdministrator(auth.user) && parsed.data.branchId !== auth.user.branchId) return NextResponse.json({ error: "Você só pode iniciar checklists para sua filial." }, { status: 403 });
   const [checklist] = await db.select({ id: checklists.id }).from(checklists).where(and(eq(checklists.id, parsed.data.checklistId), eq(checklists.status, "published"))).limit(1);
   if (!checklist) return NextResponse.json({ error: "Checklist publicado não encontrado." }, { status: 404 });
   const [existing] = await db.select({ id: checklistExecutions.id }).from(checklistExecutions).where(and(

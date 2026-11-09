@@ -17,8 +17,8 @@ async function loadExecution(id: string) {
   return row ?? null;
 }
 
-function canAccess(user: { employeeId: number; branchId: string }, branchId: string) {
-  return isAdministrator(user) || user.branchId === branchId;
+function canAccess(user: { id: string; employeeId: number }, assignedTo: string) {
+  return isAdministrator(user) || user.id === assignedTo;
 }
 
 export async function GET(_request: Request, context: { params: Promise<{ id: string }> }) {
@@ -28,7 +28,7 @@ export async function GET(_request: Request, context: { params: Promise<{ id: st
   if (!id.success) return NextResponse.json({ error: "Execução inválida." }, { status: 400 });
   const loaded = await loadExecution(id.data);
   if (!loaded) return NextResponse.json({ error: "Execução não encontrada." }, { status: 404 });
-  if (!canAccess(auth.user, loaded.execution.branchId)) return NextResponse.json({ error: "Sem acesso a esta execução." }, { status: 403 });
+  if (!canAccess(auth.user, loaded.execution.assignedTo)) return NextResponse.json({ error: "Sem acesso a esta execução." }, { status: 403 });
   const flowNodes = await db.select({ id: checklistFlowNodes.id }).from(checklistFlowNodes).where(eq(checklistFlowNodes.checklistId, loaded.checklist.id)).limit(1);
   if (flowNodes.length) {
     const [current] = loaded.execution.currentNodeId ? await db.select().from(checklistFlowNodes).where(eq(checklistFlowNodes.id, loaded.execution.currentNodeId)).limit(1) : [];
@@ -65,7 +65,7 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
   if (!parsed.success) return NextResponse.json({ error: "Respostas inválidas." }, { status: 400 });
   const loaded = await loadExecution(id.data);
   if (!loaded) return NextResponse.json({ error: "Execução não encontrada." }, { status: 404 });
-  if (!canAccess(auth.user, loaded.execution.branchId)) return NextResponse.json({ error: "Sem acesso a esta execução." }, { status: 403 });
+  if (!canAccess(auth.user, loaded.execution.assignedTo)) return NextResponse.json({ error: "Sem acesso a esta execução." }, { status: 403 });
   if (loaded.execution.status === "completed" || loaded.execution.status === "cancelled") return NextResponse.json({ error: "Esta execução está encerrada." }, { status: 409 });
   const fields = await db.select().from(checklistFields).where(eq(checklistFields.checklistId, loaded.checklist.id));
   const validationError = validateChecklistAnswers(fields, parsed.data.answers, parsed.data.complete);

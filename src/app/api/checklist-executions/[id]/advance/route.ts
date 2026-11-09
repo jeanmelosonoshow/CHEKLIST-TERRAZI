@@ -22,7 +22,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
   if (!parsed.success) return NextResponse.json({ error: "Resposta inválida." }, { status: 400 });
   const [execution] = await db.select().from(checklistExecutions).where(eq(checklistExecutions.id, id.data)).limit(1);
   if (!execution) return NextResponse.json({ error: "Execução não encontrada." }, { status: 404 });
-  if (!isAdministrator(auth.user) && execution.branchId !== auth.user.branchId) return NextResponse.json({ error: "Sem acesso a esta execução." }, { status: 403 });
+  if (!isAdministrator(auth.user) && execution.assignedTo !== auth.user.id) return NextResponse.json({ error: "Sem acesso a esta execução." }, { status: 403 });
   if (execution.status === "completed" || execution.status === "cancelled") return NextResponse.json({ error: "Esta execução está encerrada." }, { status: 409 });
   if (execution.currentNodeId !== parsed.data.nodeId) return NextResponse.json({ error: "Este passo não é mais o passo atual da execução." }, { status: 409 });
   const [node] = await db.select().from(checklistFlowNodes).where(and(eq(checklistFlowNodes.id, parsed.data.nodeId), eq(checklistFlowNodes.checklistId, execution.checklistId))).limit(1);
