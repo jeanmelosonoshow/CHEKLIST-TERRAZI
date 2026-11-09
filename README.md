@@ -44,6 +44,7 @@ A aplicação estará em `http://localhost:3000`. No primeiro login válido, o u
 | `FIREBIRD_GATEWAY_URL` | Sim | URL pública do Gateway, por exemplo `https://gateway.jgmelo.company`. |
 | `FIREBIRD_GATEWAY_TOKEN_ID` | Sim | Identificador do token exclusivo deste projeto. |
 | `FIREBIRD_GATEWAY_HMAC_SECRET` | Sim | Segredo HMAC do token; mantenha somente nas variáveis server-side. |
+| `CRON_SECRET` | Sim | Segredo aleatório usado pela Vercel para autorizar as verificações periódicas dos fluxos. |
 | `SYNC_API_TOKEN` | Sim | Bearer token exclusivo do agente Windows, mínimo 32 caracteres. |
 | `UPSTASH_REDIS_REST_URL` | Recomendada | Endpoint REST do Redis. |
 | `UPSTASH_REDIS_REST_TOKEN` | Recomendada | Token REST do Redis. |
@@ -143,6 +144,8 @@ A migration `0013_revisoes_checklist.sql` separa os estados revogado e arquivado
 A migration `0014_itens_venda_fluxo.sql` permite mapear, no bloco inicial, os aliases de código, descrição e quantidade dos produtos retornados pela validação da venda. A execução conserva essa fotografia dos itens junto da demanda e também guarda a resposta parcial da etapa atual quando o usuário escolhe **Salvar e sair**. A simulação mantém o mesmo progresso apenas no navegador e continua sem gravar dados operacionais no PostgreSQL.
 
 A migration `0015_portas_conexoes_fluxo.sql` adiciona portas independentes de origem e destino aos conectores. O construtor permite escolher ou arrastar diretamente no gráfico se cada seta sai ou entra pelo topo, direita, base ou esquerda do bloco, além de oferecer uma área ampliada com zoom e deslocamento pelo fundo do canvas.
+
+A migration `0016_automacao_periodica_fluxo.sql` permite programar blocos de decisão automática para reconsultar Firebird ou PostgreSQL enquanto uma demanda permanecer naquela etapa. O agendador global roda a cada cinco minutos, respeita o intervalo configurado em cada bloco, evita processamento duplicado e avança o fluxo somente quando uma conexão corresponder ao resultado. Configure `CRON_SECRET` na Vercel antes do deploy.
 
 A seção **Etapas** possui permissão própria por categoria e um painel responsivo preparado para apresentar uma linha por filial, venda e cliente. O molde inicial contém Separação, Desmontagem, Impermeabilização, Entrega e Montagem. A persistência operacional ficará desacoplada até que a origem dos selects e a estratégia de salvamento sejam definidas.
 

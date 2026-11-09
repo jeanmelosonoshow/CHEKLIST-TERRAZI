@@ -55,7 +55,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
   const now = new Date(); const completed = target.type === "end";
   await db.transaction(async (tx) => {
     await tx.insert(checklistFlowSteps).values({ executionId: execution.id, nodeId: node.id, answer, observation: parsed.data.observation || null, automatic: node.type === "automatic_decision", nextNodeId: target.id, userId: auth.user.id });
-    await tx.update(checklistExecutions).set({ currentNodeId: target.id, status: completed ? "completed" : "in_progress", outcome: completed ? target.outcome : null, draftAnswer: null, draftObservation: null, startedAt: execution.startedAt ?? now, completedAt: completed ? now : null, updatedAt: now }).where(eq(checklistExecutions.id, execution.id));
+    await tx.update(checklistExecutions).set({ currentNodeId: target.id, status: completed ? "completed" : "in_progress", outcome: completed ? target.outcome : null, draftAnswer: null, draftObservation: null, nextAutomationAt: !completed && target.type === "automatic_decision" && target.autoIntervalMinutes ? now : null, startedAt: execution.startedAt ?? now, completedAt: completed ? now : null, updatedAt: now }).where(eq(checklistExecutions.id, execution.id));
     await tx.insert(checklistExecutionEvents).values({ executionId: execution.id, event: completed ? `completed_${target.outcome}` : "step_completed", userId: auth.user.id, data: { nodeId: node.id, nextNodeId: target.id } });
   });
   return NextResponse.json({ completed, outcome: completed ? target.outcome : null, currentNodeId: target.id, answer });

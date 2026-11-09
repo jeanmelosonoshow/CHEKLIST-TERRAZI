@@ -113,6 +113,13 @@
       "when": 1794672000000,
       "tag": "0015_portas_conexoes_fluxo",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1794931200000,
+      "tag": "0016_automacao_periodica_fluxo",
+      "breakpoints": true
     }
   ]
 }

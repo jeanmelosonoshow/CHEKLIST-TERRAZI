@@ -43,6 +43,7 @@ const flowNodeSchema = z.object({
   automationSource: z.enum(["postgres", "firebird"]).nullish(),
   querySql: z.string().trim().max(50_000).nullish(),
   resultField: z.string().trim().min(1).max(100).default("RESULTADO"),
+  autoIntervalMinutes: z.coerce.number().int().min(5).max(10_080).nullish(),
   customerResultField: z.string().trim().max(100).nullish(),
   productCodeField: z.string().trim().max(100).nullish(),
   productDescriptionField: z.string().trim().max(100).nullish(),

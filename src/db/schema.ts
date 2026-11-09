@@ -203,6 +203,7 @@ export const checklistFlowNodes = pgTable(
     automationSource: checklistAutomationSourceEnum("origem_automacao"),
     querySql: text("sql_consulta"),
     resultField: text("campo_resultado").default("RESULTADO").notNull(),
+    autoIntervalMinutes: integer("intervalo_automatico_minutos"),
     customerResultField: text("campo_resultado_cliente"),
     productCodeField: text("campo_resultado_codigo_produto"),
     productDescriptionField: text("campo_resultado_descricao_produto"),
@@ -248,6 +249,8 @@ export const checklistExecutions = pgTable(
     saleItems: jsonb("itens_venda").$type<Array<{ code: string; description: string; quantity: string | number }>>().default([]).notNull(),
     draftAnswer: jsonb("resposta_rascunho").$type<unknown>(),
     draftObservation: text("observacao_rascunho"),
+    nextAutomationAt: timestamp("proxima_automacao_em", { withTimezone: true }),
+    lastAutomationAt: timestamp("ultima_automacao_em", { withTimezone: true }),
     status: checklistExecutionStatusEnum("status").default("pending").notNull(),
     currentNodeId: uuid("id_no_atual").references(() => checklistFlowNodes.id),
     outcome: checklistFlowOutcomeEnum("resultado"),
@@ -261,6 +264,7 @@ export const checklistExecutions = pgTable(
   (table) => [
     index("execucoes_checklist_filial_venda_idx").on(table.branchId, table.saleNumber),
     index("execucoes_checklist_status_responsavel_idx").on(table.status, table.assignedTo),
+    index("execucoes_checklist_automacao_idx").on(table.nextAutomationAt, table.status),
     uniqueIndex("execucoes_checklist_ativa_venda_idx").on(table.checklistId, table.branchId, table.saleNumber)
       .where(sql`${table.status} in ('pending', 'in_progress')`),
   ],

@@ -23,6 +23,7 @@ export async function POST(request: Request) {
   if (existing) return NextResponse.json({ error: "Já existe uma execução pendente deste checklist para a venda.", executionId: existing.id }, { status: 409 });
   const [startNode] = await db.select().from(checklistFlowNodes).where(and(eq(checklistFlowNodes.checklistId, checklist.id), eq(checklistFlowNodes.type, "start"))).limit(1);
   let currentNodeId: string | null = null;
+  let nextAutomationAt: Date | null = null;
   let customerName: string | null = null;
   let saleItems: Array<{ code: string; description: string; quantity: string | number }> = [];
   if (startNode) {
@@ -47,13 +48,15 @@ export async function POST(request: Request) {
     }
     if (!selectedTargetNodeId) return NextResponse.json({ error: "O fluxo publicado não possui uma saída a partir do início." }, { status: 409 });
     currentNodeId = selectedTargetNodeId;
+    const [currentNode] = await db.select({ type: checklistFlowNodes.type, interval: checklistFlowNodes.autoIntervalMinutes }).from(checklistFlowNodes).where(eq(checklistFlowNodes.id, currentNodeId)).limit(1);
+    if (currentNode?.type === "automatic_decision" && currentNode.interval) nextAutomationAt = new Date();
   }
   let execution;
   try {
     execution = await db.transaction(async (tx) => {
       const [created] = await tx.insert(checklistExecutions).values({
         checklistId: checklist.id, branchId: parsed.data.branchId, saleNumber: parsed.data.saleNumber,
-        customerName, saleItems, assignedTo: auth.user.id, createdBy: auth.user.id, currentNodeId,
+        customerName, saleItems, assignedTo: auth.user.id, createdBy: auth.user.id, currentNodeId, nextAutomationAt,
       }).returning();
       await tx.insert(checklistResponses).values({ checklistId: checklist.id, executionId: created.id, userId: auth.user.id, answers: {} });
       await tx.insert(checklistExecutionEvents).values({ executionId: created.id, event: "created", userId: auth.user.id, data: { branchId: created.branchId, saleNumber: created.saleNumber } });

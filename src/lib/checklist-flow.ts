@@ -5,6 +5,7 @@ export type FlowNodeDefinition = {
   id?: string; nodeKey: string; type: FlowNodeType; title: string; description?: string | null;
   fieldType?: FlowFieldType | null; required?: boolean; sourceKey?: string | null;
   automationSource?: "postgres" | "firebird" | null; querySql?: string | null; resultField?: string;
+  autoIntervalMinutes?: number | null;
   customerResultField?: string | null; productCodeField?: string | null; productDescriptionField?: string | null; productQuantityField?: string | null;
   x?: number; y?: number; outcome?: "success" | "failure" | null; position: number; configurationSelected?: boolean;
 };
