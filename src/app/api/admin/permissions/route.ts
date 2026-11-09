@@ -15,6 +15,7 @@ export async function PUT(request: Request) {
     target: categoryPermissions.category,
     set: {
       viewChecklist: values.viewChecklist,
+      viewAllChecklistDemands: values.viewAllChecklistDemands,
       createChecklist: values.createChecklist,
       editChecklist: values.editChecklist,
       reports: values.reports,

@@ -79,6 +79,7 @@ export const users = pgTable(
 export const categoryPermissions = pgTable("permissoes_categoria", {
   category: text("categoria").primaryKey(),
   viewChecklist: boolean("visualizar_checklist").default(false).notNull(),
+  viewAllChecklistDemands: boolean("visualizar_todas_demandas_checklist").default(false).notNull(),
   createChecklist: boolean("incluir_checklist").default(false).notNull(),
   editChecklist: boolean("editar_checklist").default(false).notNull(),
   reports: boolean("relatorios").default(false).notNull(),

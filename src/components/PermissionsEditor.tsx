@@ -6,6 +6,7 @@ import type { PermissionKey, PermissionSet } from "@/lib/permissions";
 type Row = PermissionSet & { category: string; configured: boolean };
 const columns: { key: PermissionKey; label: string }[] = [
   { key: "viewChecklist", label: "Visualizar checklist" },
+  { key: "viewAllChecklistDemands", label: "Ver demandas de todos" },
   { key: "createChecklist", label: "Incluir checklist" },
   { key: "editChecklist", label: "Editar checklist" },
   { key: "reports", label: "Relatórios" },

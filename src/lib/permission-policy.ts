@@ -2,6 +2,7 @@ export const ADMIN_EMPLOYEE_ID = 752;
 
 export const permissionKeys = [
   "viewChecklist",
+  "viewAllChecklistDemands",
   "createChecklist",
   "editChecklist",
   "reports",
@@ -14,6 +15,7 @@ export type PermissionSet = Record<PermissionKey, boolean>;
 
 export const NO_PERMISSIONS: PermissionSet = {
   viewChecklist: false,
+  viewAllChecklistDemands: false,
   createChecklist: false,
   editChecklist: false,
   reports: false,
@@ -23,6 +25,7 @@ export const NO_PERMISSIONS: PermissionSet = {
 
 export const ALL_PERMISSIONS: PermissionSet = {
   viewChecklist: true,
+  viewAllChecklistDemands: true,
   createChecklist: true,
   editChecklist: true,
   reports: true,

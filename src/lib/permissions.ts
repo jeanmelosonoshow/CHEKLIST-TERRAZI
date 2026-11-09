@@ -20,6 +20,7 @@ export async function getUserPermissions(user: User): Promise<PermissionSet> {
   const [configured] = await db
     .select({
       viewChecklist: categoryPermissions.viewChecklist,
+      viewAllChecklistDemands: categoryPermissions.viewAllChecklistDemands,
       createChecklist: categoryPermissions.createChecklist,
       editChecklist: categoryPermissions.editChecklist,
       reports: categoryPermissions.reports,

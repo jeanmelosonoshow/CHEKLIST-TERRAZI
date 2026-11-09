@@ -120,6 +120,13 @@
       "when": 1794931200000,
       "tag": "0016_automacao_periodica_fluxo",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1795017600000,
+      "tag": "0017_permissao_todas_demandas",
+      "breakpoints": true
     }
   ]
 }

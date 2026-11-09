@@ -19,5 +19,6 @@ describe("permission policy", () => {
     const user = { employeeId: 10 };
     expect(hasPermission(user, ALL_PERMISSIONS, "reports")).toBe(true);
     expect(landingPath(user, { ...NO_PERMISSIONS, dashboard: true })).toBe("/dashboard");
+    expect(hasPermission(user, { ...NO_PERMISSIONS, viewAllChecklistDemands: true }, "viewAllChecklistDemands")).toBe(true);
   });
 });

@@ -50,6 +50,7 @@ async function getCurrentUserContext(): Promise<{ user: User; permissions: Permi
     user: users,
     permissionCategory: categoryPermissions.category,
     viewChecklist: categoryPermissions.viewChecklist,
+    viewAllChecklistDemands: categoryPermissions.viewAllChecklistDemands,
     createChecklist: categoryPermissions.createChecklist,
     editChecklist: categoryPermissions.editChecklist,
     reports: categoryPermissions.reports,
@@ -62,7 +63,7 @@ async function getCurrentUserContext(): Promise<{ user: User; permissions: Permi
     .limit(1);
   if (!result) return null;
   const permissions = isAdministrator(result.user) ? { ...ALL_PERMISSIONS } : result.permissionCategory ? {
-    viewChecklist: Boolean(result.viewChecklist), createChecklist: Boolean(result.createChecklist), editChecklist: Boolean(result.editChecklist),
+    viewChecklist: Boolean(result.viewChecklist), viewAllChecklistDemands: Boolean(result.viewAllChecklistDemands), createChecklist: Boolean(result.createChecklist), editChecklist: Boolean(result.editChecklist),
     reports: Boolean(result.reports), dashboard: Boolean(result.dashboard), stages: Boolean(result.stages),
   } : { ...NO_PERMISSIONS };
   return { user: result.user, permissions };

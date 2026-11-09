@@ -233,6 +233,7 @@ button.dashboardWidget:disabled { cursor: default; opacity: 1; }
 .automationBadge, .actionBadge { display: block; margin: 2px 0 12px; padding: 7px 9px; border-radius: 8px; font-size: .67rem; font-weight: 750; }
 .automationBadge { color: #315472; background: #e9f3fa; }
 .actionBadge { color: #0f654c; background: #e5f5ed; }
+.readOnlyBadge { display: inline-flex; width: fit-content; margin: 2px 0 12px; padding: 6px 9px; border-radius: 8px; color: #665220; background: #fff3d2; font-size: .66rem; font-weight: 750; }
 .executionCard .secondaryButton { width: 100%; margin-top: auto; }
 .executionStatus { display: inline-flex; padding: 6px 9px; border-radius: 999px; font-size: .66rem; font-weight: 850; text-transform: uppercase; }
 .executionStatus.pending { color: #79541a; background: #fff0cf; }

@@ -147,6 +147,8 @@ A migration `0015_portas_conexoes_fluxo.sql` adiciona portas independentes de or
 
 A migration `0016_automacao_periodica_fluxo.sql` permite programar blocos de decisão automática para reconsultar Firebird ou PostgreSQL enquanto uma demanda permanecer naquela etapa. O agendador global roda a cada cinco minutos, respeita o intervalo configurado em cada bloco, evita processamento duplicado e avança o fluxo somente quando uma conexão corresponder ao resultado. Configure `CRON_SECRET` na Vercel antes do deploy.
 
+A migration `0017_permissao_todas_demandas.sql` adiciona a autorização **Ver demandas de todos** por categoria. Sem ela, o usuário continua vendo e operando somente as demandas atribuídas a ele. Com ela, pode consultar demandas de outros usuários em modo somente leitura; apenas o responsável e o administrador podem avançar ou alterar a execução.
+
 A seção **Etapas** possui permissão própria por categoria e um painel responsivo preparado para apresentar uma linha por filial, venda e cliente. O molde inicial contém Separação, Desmontagem, Impermeabilização, Entrega e Montagem. A persistência operacional ficará desacoplada até que a origem dos selects e a estratégia de salvamento sejam definidas.
 
 O MD5 existe apenas por compatibilidade e não é adequado para novas senhas. Uma fase futura pode migrar gradualmente para Argon2/bcrypt quando a sincronização não sobrescrever mais o valor.
