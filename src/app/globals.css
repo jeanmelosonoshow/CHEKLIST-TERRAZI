@@ -59,9 +59,24 @@ button:disabled { cursor: not-allowed; opacity: .55; }
 .topbar nav { display: flex; height: 100%; align-items: center; gap: 4px; }
 .topbar nav a { display: grid; height: 100%; min-width: max-content; padding: 0 14px; place-items: center; border-bottom: 2px solid transparent; color: var(--muted); font-size: .86rem; font-weight: 700; }
 .topbar nav a.active { border-bottom-color: var(--green); color: var(--green); }
+.navigationLabel { display: flex; align-items: center; gap: 7px; }
+.navigationLabel.pending { color: var(--green); }
+.navigationLabel i { width: 12px; height: 12px; border: 2px solid #b9d2c7; border-top-color: var(--green); border-radius: 50%; animation: navigationSpin .7s linear infinite; }
 .userMenu { display: flex; margin-left: auto; align-items: center; gap: 9px; font-size: .82rem; font-weight: 700; }
 .avatar { display: grid; width: 34px; height: 34px; place-items: center; border-radius: 50%; color: var(--green-dark); background: var(--mint); font-size: .72rem; }
 .content { width: min(1240px, calc(100% - 40px)); margin: 0 auto; padding: 48px 0 80px; }
+.routeLoading { position: relative; }
+.routeLoadingBar { position: fixed; z-index: 80; top: 0; left: 0; width: 38%; height: 3px; background: var(--green); animation: routeLoadingBar 1.1s ease-in-out infinite; }
+.routeLoadingHero { display: flex; min-height: 125px; align-items: flex-end; justify-content: space-between; gap: 30px; }
+.routeLoadingHero > span, .routeLoadingHero i, .routeLoadingCards article { display: block; border-radius: 12px; background: linear-gradient(90deg, #e8eeeb 25%, #f5f8f6 50%, #e8eeeb 75%); background-size: 220% 100%; animation: loadingShimmer 1.3s ease-in-out infinite; }
+.routeLoadingHero > span { width: min(430px, 70%); height: 68px; }
+.routeLoadingHero div { display: grid; width: 130px; gap: 8px; }
+.routeLoadingHero i { height: 16px; }
+.routeLoadingCards { display: grid; margin-top: 36px; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.routeLoadingCards article { min-height: 150px; }
+@keyframes navigationSpin { to { transform: rotate(360deg); } }
+@keyframes routeLoadingBar { 0% { transform: translateX(-100%); } 100% { transform: translateX(320%); } }
+@keyframes loadingShimmer { 0% { background-position: 100% 0; } 100% { background-position: -120% 0; } }
 .heroRow { display: flex; align-items: flex-end; justify-content: space-between; gap: 30px; }
 .heroRow h1 { font-size: clamp(2.1rem, 4vw, 3.6rem); }
 .branchPill, .sourceInfo { padding: 8px 12px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); background: white; font-size: .75rem; font-weight: 700; }
@@ -377,7 +392,7 @@ button.dashboardWidget:disabled { cursor: default; opacity: 1; }
   .userName { display: none; }
   .logoutButton { padding-inline: 8px; }
   .content { width: min(100% - 28px, 1240px); padding: 30px 0 max(60px, env(safe-area-inset-bottom)); }
-  .statsGrid, .cardGrid { grid-template-columns: 1fr; }
+  .statsGrid, .cardGrid, .routeLoadingCards { grid-template-columns: 1fr; }
   .statCard { min-height: 125px; }
   .heroRow { align-items: flex-start; flex-direction: column; }
   .formGrid { grid-template-columns: 1fr; }

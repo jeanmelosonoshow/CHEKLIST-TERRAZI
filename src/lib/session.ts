@@ -2,9 +2,10 @@ import { and, eq, gt } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
-import { sessions, users, type User } from "@/db/schema";
+import { categoryPermissions, sessions, users, type User } from "@/db/schema";
 import { createSessionToken, hashSessionToken } from "./auth-crypto";
-import { getUserPermissions, hasPermission, isAdministrator, type PermissionKey } from "./permissions";
+import { hasPermission, isAdministrator, type PermissionKey, type PermissionSet } from "./permissions";
+import { ALL_PERMISSIONS, NO_PERMISSIONS } from "./permission-policy";
 
 export const SESSION_COOKIE = "terrazzi_session";
 const SESSION_DAYS = 7;
@@ -42,6 +43,31 @@ export async function getCurrentUser(): Promise<User | null> {
   return result?.user ?? null;
 }
 
+async function getCurrentUserContext(): Promise<{ user: User; permissions: PermissionSet } | null> {
+  const token = (await cookies()).get(SESSION_COOKIE)?.value;
+  if (!token) return null;
+  const [result] = await db.select({
+    user: users,
+    permissionCategory: categoryPermissions.category,
+    viewChecklist: categoryPermissions.viewChecklist,
+    createChecklist: categoryPermissions.createChecklist,
+    editChecklist: categoryPermissions.editChecklist,
+    reports: categoryPermissions.reports,
+    dashboard: categoryPermissions.dashboard,
+    stages: categoryPermissions.stages,
+  }).from(sessions)
+    .innerJoin(users, eq(sessions.userId, users.id))
+    .leftJoin(categoryPermissions, eq(users.category, categoryPermissions.category))
+    .where(and(eq(sessions.tokenHash, hashSessionToken(token)), gt(sessions.expiresAt, new Date()), eq(users.active, true)))
+    .limit(1);
+  if (!result) return null;
+  const permissions = isAdministrator(result.user) ? { ...ALL_PERMISSIONS } : result.permissionCategory ? {
+    viewChecklist: Boolean(result.viewChecklist), createChecklist: Boolean(result.createChecklist), editChecklist: Boolean(result.editChecklist),
+    reports: Boolean(result.reports), dashboard: Boolean(result.dashboard), stages: Boolean(result.stages),
+  } : { ...NO_PERMISSIONS };
+  return { user: result.user, permissions };
+}
+
 export async function requireUser() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
@@ -55,15 +81,15 @@ export async function requireAdmin() {
 }
 
 export async function requirePermission(permission: PermissionKey) {
-  const user = await requireUser();
-  const permissions = await getUserPermissions(user);
-  if (!hasPermission(user, permissions, permission)) redirect("/sem-acesso");
-  return { user, permissions };
+  const context = await getCurrentUserContext();
+  if (!context) redirect("/login");
+  if (!hasPermission(context.user, context.permissions, permission)) redirect("/sem-acesso");
+  return context;
 }
 
 export async function requireAnyPermission(required: PermissionKey[]) {
-  const user = await requireUser();
-  const permissions = await getUserPermissions(user);
-  if (!required.some((permission) => hasPermission(user, permissions, permission))) redirect("/sem-acesso");
-  return { user, permissions };
+  const context = await getCurrentUserContext();
+  if (!context) redirect("/login");
+  if (!required.some((permission) => hasPermission(context.user, context.permissions, permission))) redirect("/sem-acesso");
+  return context;
 }
