@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useSyncExternalStore } from "react";
-import type { FlowDefinition, FlowFieldType, FlowNodeType } from "@/lib/checklist-flow";
+import { formatFlowAnswer, type FlowDefinition, type FlowFieldType, type FlowNodeType } from "@/lib/checklist-flow";
 import { SaleItemsTable, type SaleItem } from "./SaleItemsTable";
 
 type Option = { value: string; label: string };
@@ -86,7 +86,7 @@ export function ChecklistFlowSimulator({ flow, storageKey }: { flow: FlowDefinit
         </div> : <>
           <div className="simulationContext"><span>Filial <strong>{context.branchId}</strong></span><span>Saída <strong>{context.saleNumber}</strong></span>{customerName && <span>Cliente <strong>{customerName}</strong></span>}</div>
           <SaleItemsTable items={saleItems} />
-          {history.length > 0 && <div className="flowExecutionTimeline">{history.map((step, index) => <div key={`${step.nodeKey}-${index}`}><i>✓</i><span><strong>{step.title}</strong><small>{displayAnswer(step.answer)}{step.automatic ? " · automático" : ""}</small></span></div>)}</div>}
+          {history.length > 0 && <div className="flowExecutionTimeline">{history.map((step, index) => <div key={`${step.nodeKey}-${index}`}><i>✓</i><span><strong>{step.title}</strong><small>{formatFlowAnswer(step.answer)}{step.automatic ? " · automático" : ""}</small></span></div>)}</div>}
           {outcome ? <div className={`flowOutcome ${outcome}`}><span>✓</span><h3>{outcome === "success" ? "Simulação finalizada com sucesso" : "Simulação finalizada sem sucesso"}</h3><p>Nenhum dado foi gravado.</p></div> : current && <div className="flowCurrentStep"><p className="eyebrow">ETAPA SIMULADA</p><h3>{current.title}</h3>{current.description && <p className="muted">{current.description}</p>}{current.type === "automatic_decision" ? <div className="automaticDecision"><span>⚙</span><p>A consulta será executada ao avançar.</p></div> : current.type === "observation" ? <textarea rows={5} value={observation} onChange={(event) => setObservation(event.target.value)} /> : <SimulatorInput node={current} value={answer} onChange={setAnswer} />}</div>}
           <div className="builderActions"><button type="button" className="textButton dangerButton" onClick={discard}>Descartar teste</button><button type="button" className="secondaryButton" onClick={() => setOpen(false)}>Pausar e fechar</button>{!outcome && current && <button type="button" className="primaryButton" disabled={working} onClick={() => run(current.nodeKey)}>{working ? "Processando…" : current.type === "automatic_decision" ? "Executar decisão" : "Avançar"}</button>}</div>
         </>}
@@ -104,4 +104,3 @@ function SimulatorInput({ node, value, onChange }: { node: SimNode; value: unkno
   return <input type={node.fieldType === "number" ? "number" : node.fieldType === "date" ? "date" : "text"} value={typeof value === "string" || typeof value === "number" ? value : ""} onChange={(event) => onChange(node.fieldType === "number" ? event.target.value === "" ? "" : Number(event.target.value) : event.target.value)} />;
 }
 
-function displayAnswer(value: unknown) { if (value === true) return "Sim"; if (value === false) return "Não"; if (Array.isArray(value)) return value.join(", "); return value === undefined || value === null || value === "" ? "Concluído" : String(value); }

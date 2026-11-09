@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { normalizeDecisionValue, selectNextEdge, validateFlowDefinition, type FlowDefinition } from "./checklist-flow";
+import { formatFlowAnswer, normalizeDecisionValue, selectNextEdge, validateFlowDefinition, type FlowDefinition } from "./checklist-flow";
 
 const validFlow: FlowDefinition = {
   nodes: [
@@ -24,6 +24,11 @@ describe("checklist flow", () => {
   it("selects conditional branches and normalizes Firebird booleans", () => {
     expect(normalizeDecisionValue("SIM")).toBe(true);
     expect(selectNextEdge(validFlow.edges.filter((edge) => edge.sourceKey === "aprovado"), "N")?.targetKey).toBe("falha");
+  });
+  it("formats textual boolean history values in Portuguese", () => {
+    expect(formatFlowAnswer("True")).toBe("Sim");
+    expect(formatFlowAnswer("FALSE")).toBe("Não");
+    expect(formatFlowAnswer(["true", "False"])).toBe("Sim, Não");
   });
   it("supports numeric conditions for entry validation", () => {
     const edges = [{ sourceKey: "inicio", targetKey: "proximo", condition: "greater_than" as const, conditionValue: 0, priority: 0 }];

@@ -64,6 +64,14 @@ export function normalizeDecisionValue(value: unknown): unknown {
   return value;
 }
 
+export function formatFlowAnswer(value: unknown): string {
+  const normalized = normalizeDecisionValue(value);
+  if (normalized === true) return "Sim";
+  if (normalized === false) return "Não";
+  if (Array.isArray(value)) return value.map((item) => formatFlowAnswer(item)).join(", ");
+  return value === undefined || value === null || value === "" ? "Concluído" : String(value);
+}
+
 export function selectNextEdge(edges: FlowEdgeDefinition[], rawValue: unknown) {
   const value = normalizeDecisionValue(rawValue);
   const sorted = [...edges].sort((a, b) => a.priority - b.priority);
