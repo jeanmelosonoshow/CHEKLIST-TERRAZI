@@ -343,6 +343,7 @@ button.dashboardWidget:disabled { cursor: default; opacity: 1; }
 .saleItems th, .saleItems td { padding: 10px 12px; font-size: .72rem; }
 .saleItems th:first-child, .saleItems td:first-child { width: 110px; }
 .saleItems th:last-child, .saleItems td:last-child { width: 80px; text-align: right; }
+.saleItemsMobile { display: none; }
 .status.revoked { color: #7a5317; background: #fff0cf; }
 .checklistLifecycleActions { display: contents; }
 @media (hover: hover) {
@@ -405,6 +406,15 @@ button.dashboardWidget:disabled { cursor: default; opacity: 1; }
   .flowExecutionTimeline { max-height: 180px; overflow-y: auto; }
 }
 @media (max-width: 700px) {
+  .saleItemsDesktop { display: none; }
+  .saleItemsMobile { display: grid; gap: 10px; }
+  .saleItemsMobile article { overflow: hidden; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); }
+  .saleItemsMobile article > div { display: flex; padding: 11px 13px; align-items: center; justify-content: space-between; gap: 16px; border-bottom: 1px solid var(--line); background: #f7faf8; }
+  .saleItemsMobile span, .saleItemsMobile small, .saleItemsMobile strong { display: block; }
+  .saleItemsMobile small { margin-bottom: 2px; color: var(--muted); font-size: .6rem; font-weight: 750; letter-spacing: .05em; text-transform: uppercase; }
+  .saleItemsMobile strong { color: var(--ink); font-size: .78rem; }
+  .saleItemQuantity { text-align: right; }
+  .saleItemsMobile p { margin: 0; padding: 12px 13px 14px; overflow-wrap: anywhere; color: var(--ink); font-size: .74rem; line-height: 1.45; }
   .responsiveTable { overflow: visible; border: 0; background: transparent; }
   .responsiveTable table, .responsiveTable tbody { display: block; }
   .responsiveTable thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
