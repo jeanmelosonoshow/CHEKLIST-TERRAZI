@@ -2,13 +2,14 @@ import { and, asc, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/db";
-import { checklistExecutionEvents, checklistExecutions, checklistFlowEdges, checklistFlowNodes, checklistFlowSteps } from "@/db/schema";
+import { checklistExecutionEvents, checklistExecutions, checklistFlowEdges, checklistFlowItemResponses, checklistFlowNodes, checklistFlowSteps } from "@/db/schema";
 import { getApiPermission } from "@/lib/api-auth";
 import { answerIsEmpty } from "@/lib/checklist-execution";
 import { selectNextEdge } from "@/lib/checklist-flow";
 import { executeFlowAutomation } from "@/lib/flow-automation";
 import { getOptionSource, resolveOptionSource } from "@/lib/option-sources";
 import { isAdministrator } from "@/lib/permissions";
+import { prepareItemizedAnswers, type PreparedItemizedAnswer } from "@/lib/itemized-checklist";
 import { advanceChecklistFlowSchema } from "@/lib/validation";
 
 const idSchema = z.string().uuid();
@@ -28,6 +29,13 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
   const [node] = await db.select().from(checklistFlowNodes).where(and(eq(checklistFlowNodes.id, parsed.data.nodeId), eq(checklistFlowNodes.checklistId, execution.checklistId))).limit(1);
   if (!node) return NextResponse.json({ error: "Bloco do fluxo não encontrado." }, { status: 404 });
   let answer = parsed.data.answer;
+  let itemAnswers: PreparedItemizedAnswer[] = [];
+  if (node.type === "action" && node.responseByItem) {
+    const prepared = prepareItemizedAnswers(execution.saleItems, parsed.data.itemAnswers || [], true);
+    if (prepared.error) return NextResponse.json({ error: prepared.error }, { status: 409 });
+    itemAnswers = prepared.answers;
+    answer = prepared.aggregate;
+  }
   if (node.type === "automatic_decision") answer = (await executeFlowAutomation(node, execution, auth.user)).value;
   if ((node.type === "question" || node.type === "action") && node.required && answerIsEmpty(answer)) return NextResponse.json({ error: `Responda: ${node.title}.` }, { status: 409 });
   if (!answerIsEmpty(answer) && (node.type === "question" || node.type === "action")) {
@@ -54,6 +62,10 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
   if (!target) return NextResponse.json({ error: "O próximo bloco do fluxo não foi encontrado." }, { status: 409 });
   const now = new Date(); const completed = target.type === "end";
   await db.transaction(async (tx) => {
+    for (const item of itemAnswers) {
+      await tx.insert(checklistFlowItemResponses).values({ executionId: execution.id, nodeId: node.id, itemIndex: item.itemIndex, productCode: item.productCode, productDescription: item.productDescription, quantity: item.quantity, success: item.success, observation: item.observation, userId: auth.user.id, updatedAt: now })
+        .onConflictDoUpdate({ target: [checklistFlowItemResponses.executionId, checklistFlowItemResponses.nodeId, checklistFlowItemResponses.itemIndex], set: { success: item.success, observation: item.observation, userId: auth.user.id, updatedAt: now } });
+    }
     await tx.insert(checklistFlowSteps).values({ executionId: execution.id, nodeId: node.id, answer, observation: parsed.data.observation || null, automatic: node.type === "automatic_decision", nextNodeId: target.id, userId: auth.user.id });
     await tx.update(checklistExecutions).set({ currentNodeId: target.id, status: completed ? "completed" : "in_progress", outcome: completed ? target.outcome : null, draftAnswer: null, draftObservation: null, nextAutomationAt: !completed && target.type === "automatic_decision" && target.autoIntervalMinutes ? now : null, startedAt: execution.startedAt ?? now, completedAt: completed ? now : null, updatedAt: now }).where(eq(checklistExecutions.id, execution.id));
     await tx.insert(checklistExecutionEvents).values({ executionId: execution.id, event: completed ? `completed_${target.outcome}` : "step_completed", userId: auth.user.id, data: { nodeId: node.id, nextNodeId: target.id } });

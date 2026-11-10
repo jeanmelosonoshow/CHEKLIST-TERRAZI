@@ -4,6 +4,7 @@ import { answerIsEmpty } from "@/lib/checklist-execution";
 import { selectNextEdge, validateFlowDefinition, type FlowNodeDefinition } from "@/lib/checklist-flow";
 import { executeFlowAutomation, mapAutomationItems, readAutomationField } from "@/lib/flow-automation";
 import { getOptionSource, resolveOptionSource } from "@/lib/option-sources";
+import { prepareItemizedAnswers } from "@/lib/itemized-checklist";
 import { simulateChecklistFlowSchema } from "@/lib/validation";
 import { rateLimit } from "@/lib/rate-limit";
 
@@ -24,7 +25,7 @@ export async function POST(request: Request) {
   let node: FlowNodeDefinition | undefined;
   let value = parsed.data.answer;
   let customerName: string | null = null;
-  let saleItems: Array<{ code: string; description: string; quantity: string | number }> = [];
+  let saleItems: Array<{ code: string; description: string; quantity: string | number }> = parsed.data.saleItems || [];
   if (!parsed.data.nodeKey) {
     node = flow.nodes.find((item) => item.type === "start");
     if (!node) return NextResponse.json({ error: "Bloco inicial não encontrado." }, { status: 409 });
@@ -47,6 +48,11 @@ export async function POST(request: Request) {
       const result = await runAutomation({ automationSource: node.automationSource || null, querySql: node.querySql || null, resultField: node.resultField || "RESULTADO" }, branchId, saleNumber, auth.user);
       if (result instanceof NextResponse) return result;
       value = result.value;
+    }
+    if (node.type === "action" && node.responseByItem) {
+      const prepared = prepareItemizedAnswers(saleItems, parsed.data.itemAnswers || [], true);
+      if (prepared.error) return NextResponse.json({ error: prepared.error }, { status: 409 });
+      value = prepared.aggregate;
     }
     if (node.type === "observation") value = parsed.data.observation || "";
     if (node.required && answerIsEmpty(value)) return NextResponse.json({ error: `Preencha: ${node.title}.` }, { status: 409 });

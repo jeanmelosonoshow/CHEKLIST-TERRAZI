@@ -127,6 +127,13 @@
       "when": 1795017600000,
       "tag": "0017_permissao_todas_demandas",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1795104000000,
+      "tag": "0018_respostas_produtos_fluxo",
+      "breakpoints": true
     }
   ]
 }

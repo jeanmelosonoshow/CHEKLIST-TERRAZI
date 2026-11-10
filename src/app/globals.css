@@ -360,6 +360,21 @@ button.dashboardWidget:disabled { cursor: default; opacity: 1; }
 .saleItems th:first-child, .saleItems td:first-child { width: 110px; }
 .saleItems th:last-child, .saleItems td:last-child { width: 80px; text-align: right; }
 .saleItemsMobile { display: none; }
+.itemizedResponses { display: grid; gap: 12px; margin-top: 18px; }
+.itemizedProgress { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.itemizedProgress strong { font-size: .82rem; }
+.itemizedProgress span { color: var(--muted); font-size: .72rem; }
+.itemizedProductCard { overflow: hidden; border: 1px solid var(--line); border-radius: 14px; background: var(--paper); }
+.itemizedProductHeader { display: flex; padding: 11px 13px; align-items: center; justify-content: space-between; gap: 16px; background: #f7faf8; }
+.itemizedProductHeader small, .itemizedProductHeader strong { display: block; }
+.itemizedProductHeader small { color: var(--muted); font-size: .6rem; font-weight: 750; letter-spacing: .05em; text-transform: uppercase; }
+.itemizedProductCard > p { margin: 0; padding: 12px 13px; overflow-wrap: anywhere; font-size: .78rem; line-height: 1.45; }
+.itemizedStatusChoices { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 0 13px 12px; }
+.itemizedStatusChoices button { min-height: 42px; border: 1px solid var(--line); border-radius: 10px; background: white; color: var(--muted); font-weight: 750; }
+.itemizedStatusChoices .success.selected { border-color: #0d765c; background: #def4e9; color: #075e49; }
+.itemizedStatusChoices .failure.selected { border-color: #b84b48; background: #fde8e7; color: #9b3734; }
+.itemizedProductCard > label { display: block; padding: 0 13px 13px; color: var(--muted); font-size: .7rem; font-weight: 700; }
+.itemizedProductCard textarea { width: 100%; margin-top: 5px; resize: vertical; }
 .status.revoked { color: #7a5317; background: #fff0cf; }
 .checklistLifecycleActions { display: contents; }
 @media (hover: hover) {

@@ -39,6 +39,7 @@ const flowNodeSchema = z.object({
   description: z.string().trim().max(1000).nullish(),
   fieldType: z.enum(["short_text", "long_text", "number", "date", "boolean", "single_select", "multi_select"]).nullish(),
   required: z.boolean().default(false),
+  responseByItem: z.boolean().default(false),
   sourceKey: z.string().trim().min(1).max(100).nullish(),
   automationSource: z.enum(["postgres", "firebird"]).nullish(),
   querySql: z.string().trim().max(50_000).nullish(),
@@ -168,6 +169,7 @@ export const advanceChecklistFlowSchema = z.object({
   nodeId: z.string().uuid(),
   answer: z.unknown().optional(),
   observation: z.string().trim().max(5000).nullish(),
+  itemAnswers: z.array(z.object({ itemIndex: z.number().int().min(0).max(9999), success: z.boolean(), observation: z.string().trim().max(2000).nullish() })).max(1000).optional(),
 });
 
 export const simulateChecklistFlowSchema = z.object({
@@ -177,4 +179,6 @@ export const simulateChecklistFlowSchema = z.object({
   nodeKey: z.string().trim().max(100).nullish(),
   answer: z.unknown().optional(),
   observation: z.string().trim().max(5000).nullish(),
+  saleItems: z.array(z.object({ code: z.string().max(200), description: z.string().max(2000), quantity: z.union([z.string().max(100), z.number()]) })).max(1000).optional(),
+  itemAnswers: z.array(z.object({ itemIndex: z.number().int().min(0).max(9999), success: z.boolean(), observation: z.string().trim().max(2000).nullish() })).max(1000).optional(),
 });

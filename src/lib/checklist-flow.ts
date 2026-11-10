@@ -4,6 +4,7 @@ export type FlowPort = "top" | "right" | "bottom" | "left";
 export type FlowNodeDefinition = {
   id?: string; nodeKey: string; type: FlowNodeType; title: string; description?: string | null;
   fieldType?: FlowFieldType | null; required?: boolean; sourceKey?: string | null;
+  responseByItem?: boolean;
   automationSource?: "postgres" | "firebird" | null; querySql?: string | null; resultField?: string;
   autoIntervalMinutes?: number | null;
   customerResultField?: string | null; productCodeField?: string | null; productDescriptionField?: string | null; productQuantityField?: string | null;
@@ -25,6 +26,8 @@ export function validateFlowDefinition(flow: FlowDefinition) {
   if (!flow.nodes.some((node) => node.type === "end")) errors.push("O fluxo deve possuir pelo menos um encerramento.");
   for (const node of flow.nodes) {
     if ((node.type === "question" || node.type === "action") && !node.fieldType) errors.push(`Defina o tipo de resposta de “${node.title}”.`);
+    if (node.responseByItem && node.type !== "action") errors.push(`A resposta por produto só pode ser usada em blocos de ação: “${node.title}”.`);
+    if (node.responseByItem && node.fieldType !== "boolean") errors.push(`A ação por produto “${node.title}” deve usar resultado Sim / Não.`);
     if (node.type === "automatic_decision" && (!node.automationSource || !node.querySql || !node.resultField)) errors.push(`Configure a consulta automática de “${node.title}”.`);
     if (node.type === "start" && node.automationSource && (!node.querySql || !node.resultField)) errors.push("Configure a consulta de validação do bloco inicial.");
     if (node.type === "end" && !node.outcome) errors.push(`Defina o resultado do encerramento “${node.title}”.`);

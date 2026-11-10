@@ -73,7 +73,7 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
       await tx.delete(checklistFlowNodes).where(eq(checklistFlowNodes.checklistId, checklist.id));
       const inserted = await tx.insert(checklistFlowNodes).values(parsed.data.flow.nodes.map((node) => ({
         checklistId: checklist.id, nodeKey: node.nodeKey, type: node.type, title: node.title, description: node.description || null,
-        fieldType: node.fieldType || null, required: node.required, sourceKey: node.sourceKey || null,
+        fieldType: node.fieldType || null, required: node.required, responseByItem: node.type === "action" && Boolean(node.responseByItem), sourceKey: node.sourceKey || null,
         automationSource: node.automationSource || null, querySql: node.querySql || null, resultField: node.resultField,
         autoIntervalMinutes: node.type === "automatic_decision" ? node.autoIntervalMinutes || null : null,
         customerResultField: node.customerResultField || null,

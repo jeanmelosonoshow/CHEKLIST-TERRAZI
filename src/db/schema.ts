@@ -200,6 +200,7 @@ export const checklistFlowNodes = pgTable(
     description: text("descricao"),
     fieldType: fieldTypeEnum("tipo_campo"),
     required: boolean("obrigatorio").default(false).notNull(),
+    responseByItem: boolean("responder_por_item").default(false).notNull(),
     sourceKey: text("chave_fonte").references(() => syncedSources.key),
     automationSource: checklistAutomationSourceEnum("origem_automacao"),
     querySql: text("sql_consulta"),
@@ -285,6 +286,28 @@ export const checklistFlowSteps = pgTable(
     createdAt: timestamp("criado_em", { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [index("passos_execucao_fluxo_execucao_idx").on(table.executionId, table.createdAt)],
+);
+
+export const checklistFlowItemResponses = pgTable(
+  "respostas_itens_etapa_checklist",
+  {
+    id: bigint("id", { mode: "number" }).generatedAlwaysAsIdentity().primaryKey(),
+    executionId: uuid("id_execucao").notNull().references(() => checklistExecutions.id, { onDelete: "cascade" }),
+    nodeId: uuid("id_no").notNull().references(() => checklistFlowNodes.id),
+    itemIndex: integer("indice_item").notNull(),
+    productCode: text("codigo_produto").notNull(),
+    productDescription: text("descricao_produto").notNull(),
+    quantity: text("quantidade").notNull(),
+    success: boolean("sucesso").notNull(),
+    observation: text("observacao"),
+    userId: uuid("id_usuario").notNull().references(() => users.id),
+    createdAt: timestamp("criado_em", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("atualizado_em", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("respostas_itens_etapa_execucao_no_item_idx").on(table.executionId, table.nodeId, table.itemIndex),
+    index("respostas_itens_etapa_produto_resultado_idx").on(table.productCode, table.success),
+  ],
 );
 
 export const checklistResponses = pgTable(

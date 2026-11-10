@@ -3,9 +3,10 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { formatFlowAnswer, type FlowDefinition, type FlowFieldType, type FlowNodeType } from "@/lib/checklist-flow";
 import { SaleItemsTable, type SaleItem } from "./SaleItemsTable";
+import { ItemizedProductResponses, type ProductResponses } from "./ItemizedProductResponses";
 
 type Option = { value: string; label: string };
-type SimNode = { nodeKey: string; type: FlowNodeType; title: string; description?: string | null; fieldType?: FlowFieldType | null; required?: boolean; options: Option[] };
+type SimNode = { nodeKey: string; type: FlowNodeType; title: string; description?: string | null; fieldType?: FlowFieldType | null; required?: boolean; responseByItem?: boolean; options: Option[] };
 type Step = { nodeKey: string; title: string; answer: unknown; automatic: boolean };
 const simulationStorageEvent = "checklist-flow-simulation-change";
 
@@ -29,18 +30,19 @@ export function ChecklistFlowSimulator({ flow, storageKey }: { flow: FlowDefinit
   const [outcome, setOutcome] = useState<"success" | "failure" | null>(null);
   const [customerName, setCustomerName] = useState<string | null>(null);
   const [saleItems, setSaleItems] = useState<SaleItem[]>([]);
+  const [itemAnswers, setItemAnswers] = useState<ProductResponses>({});
   const [message, setMessage] = useState("");
   const [working, setWorking] = useState(false);
   const [active, setActive] = useState(false);
   const localKey = `checklist-flow-simulation:${storageKey}`;
-  const signature = JSON.stringify({ nodes: flow.nodes.map((node) => [node.nodeKey, node.type, node.title]), edges: flow.edges });
+  const signature = JSON.stringify({ nodes: flow.nodes.map((node) => [node.nodeKey, node.type, node.title, node.responseByItem]), edges: flow.edges });
   const hasSaved = useSyncExternalStore(subscribeSimulationStorage, () => Boolean(localStorage.getItem(localKey)), () => false);
 
   useEffect(() => {
     if (!active) return;
-    localStorage.setItem(localKey, JSON.stringify({ signature, context, current, history, answer, observation, outcome, customerName, saleItems }));
+    localStorage.setItem(localKey, JSON.stringify({ signature, context, current, history, answer, itemAnswers, observation, outcome, customerName, saleItems }));
     window.dispatchEvent(new Event(simulationStorageEvent));
-  }, [active, localKey, signature, context, current, history, answer, observation, outcome, customerName, saleItems]);
+  }, [active, localKey, signature, context, current, history, answer, itemAnswers, observation, outcome, customerName, saleItems]);
 
   function openSimulation() {
     const raw = localStorage.getItem(localKey);
@@ -48,7 +50,7 @@ export function ChecklistFlowSimulator({ flow, storageKey }: { flow: FlowDefinit
       const saved = JSON.parse(raw);
       if (saved.signature === signature) {
         setContext(saved.context); setCurrent(saved.current); setHistory(saved.history || []); setAnswer(saved.answer ?? "");
-        setObservation(saved.observation || ""); setOutcome(saved.outcome || null); setCustomerName(saved.customerName || null); setSaleItems(saved.saleItems || []);
+        setItemAnswers(saved.itemAnswers || {}); setObservation(saved.observation || ""); setOutcome(saved.outcome || null); setCustomerName(saved.customerName || null); setSaleItems(saved.saleItems || []);
       } else { localStorage.removeItem(localKey); window.dispatchEvent(new Event(simulationStorageEvent)); }
     } catch { localStorage.removeItem(localKey); window.dispatchEvent(new Event(simulationStorageEvent)); }
     setActive(true); setOpen(true);
@@ -56,7 +58,7 @@ export function ChecklistFlowSimulator({ flow, storageKey }: { flow: FlowDefinit
 
   function discard() {
     localStorage.removeItem(localKey); window.dispatchEvent(new Event(simulationStorageEvent)); setActive(false); setOpen(false); setCurrent(null); setHistory([]); setOutcome(null);
-    setAnswer(""); setObservation(""); setMessage(""); setCustomerName(null); setSaleItems([]);
+    setAnswer(""); setItemAnswers({}); setObservation(""); setMessage(""); setCustomerName(null); setSaleItems([]);
   }
 
   async function run(nodeKey?: string) {
@@ -64,14 +66,14 @@ export function ChecklistFlowSimulator({ flow, storageKey }: { flow: FlowDefinit
     setWorking(true); setMessage("");
     const response = await fetch("/api/admin/checklists/simulate", {
       method: "POST", headers: { "content-type": "application/json" },
-      body: JSON.stringify({ flow, ...context, nodeKey, answer, observation }),
+      body: JSON.stringify({ flow, ...context, nodeKey, answer, observation, saleItems, itemAnswers: Object.entries(itemAnswers).map(([itemIndex, value]) => ({ itemIndex: Number(itemIndex), ...value })) }),
     });
     const body = await response.json().catch(() => ({})); setWorking(false);
     if (!response.ok) { setMessage(body.error || "Não foi possível simular esta etapa."); return; }
     setHistory((items) => [...items, body.step]); setCurrent(body.currentNode || null);
     setOutcome(body.outcome || null); setCustomerName((value) => body.customerName || value);
     setSaleItems((items) => body.saleItems?.length ? body.saleItems : items);
-    setAnswer(""); setObservation("");
+    setAnswer(""); setItemAnswers({}); setObservation("");
   }
 
   return <>
@@ -87,7 +89,7 @@ export function ChecklistFlowSimulator({ flow, storageKey }: { flow: FlowDefinit
           <div className="simulationContext"><span>Filial <strong>{context.branchId}</strong></span><span>Saída <strong>{context.saleNumber}</strong></span>{customerName && <span>Cliente <strong>{customerName}</strong></span>}</div>
           <SaleItemsTable items={saleItems} />
           {history.length > 0 && <div className="flowExecutionTimeline">{history.map((step, index) => <div key={`${step.nodeKey}-${index}`}><i>✓</i><span><strong>{step.title}</strong><small>{formatFlowAnswer(step.answer)}{step.automatic ? " · automático" : ""}</small></span></div>)}</div>}
-          {outcome ? <div className={`flowOutcome ${outcome}`}><span>✓</span><h3>{outcome === "success" ? "Simulação finalizada com sucesso" : "Simulação finalizada sem sucesso"}</h3><p>Nenhum dado foi gravado.</p></div> : current && <div className="flowCurrentStep"><p className="eyebrow">ETAPA SIMULADA</p><h3>{current.title}</h3>{current.description && <p className="muted">{current.description}</p>}{current.type === "automatic_decision" ? <div className="automaticDecision"><span>⚙</span><p>A consulta será executada ao avançar.</p></div> : current.type === "observation" ? <textarea rows={5} value={observation} onChange={(event) => setObservation(event.target.value)} /> : <SimulatorInput node={current} value={answer} onChange={setAnswer} />}</div>}
+          {outcome ? <div className={`flowOutcome ${outcome}`}><span>✓</span><h3>{outcome === "success" ? "Simulação finalizada com sucesso" : "Simulação finalizada sem sucesso"}</h3><p>Nenhum dado foi gravado.</p></div> : current && <div className="flowCurrentStep"><p className="eyebrow">ETAPA SIMULADA</p><h3>{current.title}</h3>{current.description && <p className="muted">{current.description}</p>}{current.type === "automatic_decision" ? <div className="automaticDecision"><span>⚙</span><p>A consulta será executada ao avançar.</p></div> : current.type === "observation" ? <textarea rows={5} value={observation} onChange={(event) => setObservation(event.target.value)} /> : current.responseByItem ? <ItemizedProductResponses items={saleItems} answers={itemAnswers} onChange={setItemAnswers} /> : <SimulatorInput node={current} value={answer} onChange={setAnswer} />}</div>}
           <div className="builderActions"><button type="button" className="textButton dangerButton" onClick={discard}>Descartar teste</button><button type="button" className="secondaryButton" onClick={() => setOpen(false)}>Pausar e fechar</button>{!outcome && current && <button type="button" className="primaryButton" disabled={working} onClick={() => run(current.nodeKey)}>{working ? "Processando…" : current.type === "automatic_decision" ? "Executar decisão" : "Avançar"}</button>}</div>
         </>}
         {message && <p className="formError simulationError" role="alert">{message}</p>}
