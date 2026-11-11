@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ALL_PERMISSIONS, NO_PERMISSIONS, hasPermission, isAdministrator, landingPath } from "./permission-policy";
+import { ALL_PERMISSIONS, NO_PERMISSIONS, canManageChecklistDemand, hasPermission, isAdministrator, landingPath } from "./permission-policy";
 
 describe("permission policy", () => {
   it("always grants full access to employee 752", () => {
@@ -20,5 +20,12 @@ describe("permission policy", () => {
     expect(hasPermission(user, ALL_PERMISSIONS, "reports")).toBe(true);
     expect(landingPath(user, { ...NO_PERMISSIONS, dashboard: true })).toBe("/dashboard");
     expect(hasPermission(user, { ...NO_PERMISSIONS, viewAllChecklistDemands: true }, "viewAllChecklistDemands")).toBe(true);
+  });
+
+  it("allows managing another user's demand only with the interaction permission", () => {
+    const user = { id: "user-1", employeeId: 10 };
+    expect(canManageChecklistDemand(user, { ...NO_PERMISSIONS, viewAllChecklistDemands: true }, "user-2")).toBe(false);
+    expect(canManageChecklistDemand(user, { ...NO_PERMISSIONS, interactAllChecklistDemands: true }, "user-2")).toBe(true);
+    expect(canManageChecklistDemand(user, NO_PERMISSIONS, "user-1")).toBe(true);
   });
 });

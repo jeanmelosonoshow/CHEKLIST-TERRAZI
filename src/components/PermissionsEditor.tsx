@@ -7,6 +7,7 @@ type Row = PermissionSet & { category: string; configured: boolean };
 const columns: { key: PermissionKey; label: string }[] = [
   { key: "viewChecklist", label: "Visualizar checklist" },
   { key: "viewAllChecklistDemands", label: "Ver demandas de todos" },
+  { key: "interactAllChecklistDemands", label: "Interagir nas demandas de todos" },
   { key: "createChecklist", label: "Incluir checklist" },
   { key: "editChecklist", label: "Editar checklist" },
   { key: "reports", label: "Relatórios" },
@@ -20,7 +21,14 @@ export function PermissionsEditor({ initialRows }: { initialRows: Row[] }) {
   const [message, setMessage] = useState("");
 
   function toggle(category: string, key: PermissionKey) {
-    setRows((current) => current.map((row) => row.category === category ? { ...row, [key]: !row[key] } : row));
+    setRows((current) => current.map((row) => {
+      if (row.category !== category) return row;
+      const enabled = !row[key];
+      if (key === "interactAllChecklistDemands" && enabled) return { ...row, viewChecklist: true, viewAllChecklistDemands: true, interactAllChecklistDemands: true };
+      if (key === "viewAllChecklistDemands" && !enabled) return { ...row, viewAllChecklistDemands: false, interactAllChecklistDemands: false };
+      if (key === "viewChecklist" && !enabled) return { ...row, viewChecklist: false, viewAllChecklistDemands: false, interactAllChecklistDemands: false };
+      return { ...row, [key]: enabled };
+    }));
   }
 
   async function save(row: Row) {

@@ -10,12 +10,13 @@ export async function PUT(request: Request) {
   const parsed = updateCategoryPermissionsSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Revise a categoria e as permissões.", details: parsed.error.flatten() }, { status: 400 });
 
-  const values = { ...parsed.data, updatedAt: new Date() };
+  const values = { ...parsed.data, viewChecklist: parsed.data.viewChecklist || parsed.data.interactAllChecklistDemands, viewAllChecklistDemands: parsed.data.viewAllChecklistDemands || parsed.data.interactAllChecklistDemands, updatedAt: new Date() };
   const [permissions] = await db.insert(categoryPermissions).values(values).onConflictDoUpdate({
     target: categoryPermissions.category,
     set: {
       viewChecklist: values.viewChecklist,
       viewAllChecklistDemands: values.viewAllChecklistDemands,
+      interactAllChecklistDemands: values.interactAllChecklistDemands,
       createChecklist: values.createChecklist,
       editChecklist: values.editChecklist,
       reports: values.reports,

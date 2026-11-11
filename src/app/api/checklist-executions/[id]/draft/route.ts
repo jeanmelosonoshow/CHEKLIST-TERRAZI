@@ -4,7 +4,7 @@ import { z } from "zod";
 import { db } from "@/db";
 import { checklistExecutionEvents, checklistExecutions, checklistFlowItemResponses, checklistFlowNodes } from "@/db/schema";
 import { getApiPermission } from "@/lib/api-auth";
-import { isAdministrator } from "@/lib/permissions";
+import { canManageChecklistDemand } from "@/lib/permissions";
 import { prepareItemizedAnswers } from "@/lib/itemized-checklist";
 
 const idSchema = z.string().uuid();
@@ -16,7 +16,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
   if (!id.success || !body.success) return NextResponse.json({ error: "Rascunho inválido." }, { status: 400 });
   const [execution] = await db.select().from(checklistExecutions).where(eq(checklistExecutions.id, id.data)).limit(1);
   if (!execution) return NextResponse.json({ error: "Execução não encontrada." }, { status: 404 });
-  if (!isAdministrator(auth.user) && execution.assignedTo !== auth.user.id) return NextResponse.json({ error: "Sem acesso a esta execução." }, { status: 403 });
+  if (!canManageChecklistDemand(auth.user, auth.permissions, execution.assignedTo)) return NextResponse.json({ error: "Sem acesso para interagir nesta execução." }, { status: 403 });
   if (execution.status === "completed" || execution.status === "cancelled" || execution.currentNodeId !== body.data.nodeId) return NextResponse.json({ error: "A etapa atual foi alterada ou encerrada." }, { status: 409 });
   const [node] = await db.select({ id: checklistFlowNodes.id, responseByItem: checklistFlowNodes.responseByItem }).from(checklistFlowNodes).where(and(eq(checklistFlowNodes.id, body.data.nodeId), eq(checklistFlowNodes.checklistId, execution.checklistId))).limit(1);
   if (!node) return NextResponse.json({ error: "Etapa não encontrada." }, { status: 404 });

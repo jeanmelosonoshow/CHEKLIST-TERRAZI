@@ -151,6 +151,8 @@ A migration `0017_permissao_todas_demandas.sql` adiciona a autorização **Ver d
 
 A migration `0018_respostas_produtos_fluxo.sql` permite configurar uma ação/confirmação para resposta individual por produto. Cada item da saída recebe **Sucesso** ou **Insucesso** e uma observação livre na tabela `respostas_itens_etapa_checklist`; o fluxo só avança depois que todos os itens forem sinalizados. O resultado consolidado permanece booleano: `true` quando todos tiveram sucesso e `false` quando ao menos um teve insucesso, preservando os conectores já existentes. Para relatórios, relacione essa tabela a `execucoes_checklist` por `id_execucao` e a `nos_fluxo_checklist` por `id_no`.
 
+A migration `0019_interagir_todas_demandas.sql` adiciona a permissão **Interagir nas demandas de todos** por categoria. Quando habilitada, o usuário pode responder, salvar e avançar demandas atribuídas a outros usuários. A opção habilita também a visualização dos checklists e das demandas de todos; sem ela, **Ver demandas de todos** continua oferecendo apenas consulta.
+
 A seção **Etapas** possui permissão própria por categoria e um painel responsivo preparado para apresentar uma linha por filial, venda e cliente. O molde inicial contém Separação, Desmontagem, Impermeabilização, Entrega e Montagem. A persistência operacional ficará desacoplada até que a origem dos selects e a estratégia de salvamento sejam definidas.
 
 O MD5 existe apenas por compatibilidade e não é adequado para novas senhas. Uma fase futura pode migrar gradualmente para Argon2/bcrypt quando a sincronização não sobrescrever mais o valor.

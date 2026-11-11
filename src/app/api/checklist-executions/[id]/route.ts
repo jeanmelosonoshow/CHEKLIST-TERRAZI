@@ -6,7 +6,7 @@ import { checklistExecutionEvents, checklistExecutions, checklistFieldOptions, c
 import { getApiPermission } from "@/lib/api-auth";
 import { validateChecklistAnswers } from "@/lib/checklist-execution";
 import { getOptionSource, resolveOptionSource } from "@/lib/option-sources";
-import { isAdministrator } from "@/lib/permissions";
+import { canManageChecklistDemand, isAdministrator, type PermissionSet } from "@/lib/permissions";
 import { saveChecklistExecutionSchema } from "@/lib/validation";
 
 const idSchema = z.string().uuid();
@@ -17,12 +17,8 @@ async function loadExecution(id: string) {
   return row ?? null;
 }
 
-function canView(user: { id: string; employeeId: number }, permissions: { viewAllChecklistDemands: boolean }, assignedTo: string) {
-  return isAdministrator(user) || permissions.viewAllChecklistDemands || user.id === assignedTo;
-}
-
-function canManage(user: { id: string; employeeId: number }, assignedTo: string) {
-  return isAdministrator(user) || user.id === assignedTo;
+function canView(user: { id: string; employeeId: number }, permissions: PermissionSet, assignedTo: string) {
+  return isAdministrator(user) || permissions.viewAllChecklistDemands || permissions.interactAllChecklistDemands || user.id === assignedTo;
 }
 
 export async function GET(_request: Request, context: { params: Promise<{ id: string }> }) {
@@ -33,7 +29,7 @@ export async function GET(_request: Request, context: { params: Promise<{ id: st
   const loaded = await loadExecution(id.data);
   if (!loaded) return NextResponse.json({ error: "Execução não encontrada." }, { status: 404 });
   if (!canView(auth.user, auth.permissions, loaded.execution.assignedTo)) return NextResponse.json({ error: "Sem acesso a esta execução." }, { status: 403 });
-  const manageable = canManage(auth.user, loaded.execution.assignedTo);
+  const manageable = canManageChecklistDemand(auth.user, auth.permissions, loaded.execution.assignedTo);
   const flowNodes = await db.select({ id: checklistFlowNodes.id }).from(checklistFlowNodes).where(eq(checklistFlowNodes.checklistId, loaded.checklist.id)).limit(1);
   if (flowNodes.length) {
     const [current] = loaded.execution.currentNodeId ? await db.select().from(checklistFlowNodes).where(eq(checklistFlowNodes.id, loaded.execution.currentNodeId)).limit(1) : [];
@@ -72,7 +68,7 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
   if (!parsed.success) return NextResponse.json({ error: "Respostas inválidas." }, { status: 400 });
   const loaded = await loadExecution(id.data);
   if (!loaded) return NextResponse.json({ error: "Execução não encontrada." }, { status: 404 });
-  if (!canManage(auth.user, loaded.execution.assignedTo)) return NextResponse.json({ error: "Esta demanda pertence a outro usuário e está disponível somente para consulta." }, { status: 403 });
+  if (!canManageChecklistDemand(auth.user, auth.permissions, loaded.execution.assignedTo)) return NextResponse.json({ error: "Esta demanda pertence a outro usuário e está disponível somente para consulta." }, { status: 403 });
   if (loaded.execution.status === "completed" || loaded.execution.status === "cancelled") return NextResponse.json({ error: "Esta execução está encerrada." }, { status: 409 });
   const fields = await db.select().from(checklistFields).where(eq(checklistFields.checklistId, loaded.checklist.id));
   const validationError = validateChecklistAnswers(fields, parsed.data.answers, parsed.data.complete);

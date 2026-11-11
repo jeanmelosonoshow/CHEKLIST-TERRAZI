@@ -3,6 +3,7 @@ export const ADMIN_EMPLOYEE_ID = 752;
 export const permissionKeys = [
   "viewChecklist",
   "viewAllChecklistDemands",
+  "interactAllChecklistDemands",
   "createChecklist",
   "editChecklist",
   "reports",
@@ -16,6 +17,7 @@ export type PermissionSet = Record<PermissionKey, boolean>;
 export const NO_PERMISSIONS: PermissionSet = {
   viewChecklist: false,
   viewAllChecklistDemands: false,
+  interactAllChecklistDemands: false,
   createChecklist: false,
   editChecklist: false,
   reports: false,
@@ -26,6 +28,7 @@ export const NO_PERMISSIONS: PermissionSet = {
 export const ALL_PERMISSIONS: PermissionSet = {
   viewChecklist: true,
   viewAllChecklistDemands: true,
+  interactAllChecklistDemands: true,
   createChecklist: true,
   editChecklist: true,
   reports: true,
@@ -43,6 +46,14 @@ export function hasPermission(
   permission: PermissionKey,
 ) {
   return isAdministrator(user) || permissions[permission];
+}
+
+export function canManageChecklistDemand(
+  user: { id: string; employeeId: number },
+  permissions: PermissionSet,
+  assignedTo: string,
+) {
+  return isAdministrator(user) || permissions.interactAllChecklistDemands || user.id === assignedTo;
 }
 
 export function landingPath(user: { employeeId: number }, permissions: PermissionSet) {

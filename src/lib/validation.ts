@@ -74,6 +74,7 @@ export const updateCategoryPermissionsSchema = z.object({
   category: z.string().trim().min(1).max(120),
   viewChecklist: z.boolean(),
   viewAllChecklistDemands: z.boolean(),
+  interactAllChecklistDemands: z.boolean(),
   createChecklist: z.boolean(),
   editChecklist: z.boolean(),
   reports: z.boolean(),

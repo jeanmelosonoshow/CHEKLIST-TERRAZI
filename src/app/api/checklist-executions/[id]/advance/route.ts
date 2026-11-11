@@ -8,7 +8,7 @@ import { answerIsEmpty } from "@/lib/checklist-execution";
 import { selectNextEdge } from "@/lib/checklist-flow";
 import { executeFlowAutomation } from "@/lib/flow-automation";
 import { getOptionSource, resolveOptionSource } from "@/lib/option-sources";
-import { isAdministrator } from "@/lib/permissions";
+import { canManageChecklistDemand } from "@/lib/permissions";
 import { prepareItemizedAnswers, type PreparedItemizedAnswer } from "@/lib/itemized-checklist";
 import { advanceChecklistFlowSchema } from "@/lib/validation";
 
@@ -23,7 +23,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
   if (!parsed.success) return NextResponse.json({ error: "Resposta inválida." }, { status: 400 });
   const [execution] = await db.select().from(checklistExecutions).where(eq(checklistExecutions.id, id.data)).limit(1);
   if (!execution) return NextResponse.json({ error: "Execução não encontrada." }, { status: 404 });
-  if (!isAdministrator(auth.user) && execution.assignedTo !== auth.user.id) return NextResponse.json({ error: "Sem acesso a esta execução." }, { status: 403 });
+  if (!canManageChecklistDemand(auth.user, auth.permissions, execution.assignedTo)) return NextResponse.json({ error: "Sem acesso para interagir nesta execução." }, { status: 403 });
   if (execution.status === "completed" || execution.status === "cancelled") return NextResponse.json({ error: "Esta execução está encerrada." }, { status: 409 });
   if (execution.currentNodeId !== parsed.data.nodeId) return NextResponse.json({ error: "Este passo não é mais o passo atual da execução." }, { status: 409 });
   const [node] = await db.select().from(checklistFlowNodes).where(and(eq(checklistFlowNodes.id, parsed.data.nodeId), eq(checklistFlowNodes.checklistId, execution.checklistId))).limit(1);

@@ -3,6 +3,7 @@ import { db } from "@/db";
 import { categoryPermissions, type User } from "@/db/schema";
 import {
   ALL_PERMISSIONS,
+  canManageChecklistDemand,
   NO_PERMISSIONS,
   hasPermission,
   isAdministrator,
@@ -11,7 +12,7 @@ import {
   type PermissionSet,
 } from "./permission-policy";
 
-export { hasPermission, isAdministrator, type PermissionKey, type PermissionSet };
+export { canManageChecklistDemand, hasPermission, isAdministrator, type PermissionKey, type PermissionSet };
 
 export async function getUserPermissions(user: User): Promise<PermissionSet> {
   if (isAdministrator(user)) return { ...ALL_PERMISSIONS };
@@ -21,6 +22,7 @@ export async function getUserPermissions(user: User): Promise<PermissionSet> {
     .select({
       viewChecklist: categoryPermissions.viewChecklist,
       viewAllChecklistDemands: categoryPermissions.viewAllChecklistDemands,
+      interactAllChecklistDemands: categoryPermissions.interactAllChecklistDemands,
       createChecklist: categoryPermissions.createChecklist,
       editChecklist: categoryPermissions.editChecklist,
       reports: categoryPermissions.reports,
