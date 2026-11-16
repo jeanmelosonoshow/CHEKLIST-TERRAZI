@@ -65,7 +65,7 @@ button:disabled { cursor: not-allowed; opacity: .55; }
 .userMenu { display: flex; margin-left: auto; align-items: center; gap: 9px; font-size: .82rem; font-weight: 700; }
 .avatar { display: grid; width: 34px; height: 34px; place-items: center; border-radius: 50%; color: var(--green-dark); background: var(--mint); font-size: .72rem; }
 .content { width: min(1240px, calc(100% - 40px)); margin: 0 auto; padding: 48px 0 80px; }
-.content.wideContent { width: min(1560px, calc(100% - 32px)); }
+.content.wideContent { position: relative; width: min(1560px, calc(100% - 32px)); }
 .routeLoading { position: relative; }
 .routeLoadingBar { position: fixed; z-index: 80; top: 0; left: 0; width: 38%; height: 3px; background: var(--green); animation: routeLoadingBar 1.1s ease-in-out infinite; }
 .routeLoadingHero { display: flex; min-height: 125px; align-items: flex-end; justify-content: space-between; gap: 30px; }
@@ -118,7 +118,13 @@ td small { margin-top: 4px; color: var(--muted); }
 .accessDenied h1 { font-size: 2rem; }
 .accessDenied .primaryButton { margin-top: 20px; }
 .stageLegend { display: flex; margin-bottom: 18px; flex-wrap: wrap; gap: 8px; }
-.stageFilters { display: grid; margin-bottom: 18px; grid-template-columns: repeat(4, minmax(145px, 1fr)) auto; align-items: end; gap: 12px; }
+.stagesEfficiencyCard { position: absolute; top: 48px; right: 0; display: grid; width: min(520px, 42%); min-height: 190px; padding: 24px 28px; align-content: center; gap: 8px; border: 1px solid #b8ddce; border-radius: 17px; background: linear-gradient(135deg, #eff9f5, #fff); box-shadow: 0 12px 35px rgba(20,50,38,.07); }
+.stagesEfficiencyCard > span { color: var(--muted); font-size: .72rem; font-weight: 850; letter-spacing: .07em; text-transform: uppercase; }
+.stagesEfficiencyCard > strong { color: var(--green); font-size: 2.8rem; letter-spacing: -.05em; }
+.stagesEfficiencyCard > i { display: block; height: 10px; overflow: hidden; border-radius: 999px; background: #dfeae5; }
+.stagesEfficiencyCard > i b { display: block; height: 100%; border-radius: inherit; background: var(--green); }
+.stagesEfficiencyCard > small { color: var(--muted); }
+.stageFilters { display: grid; margin-bottom: 18px; grid-template-columns: repeat(7, minmax(120px, 1fr)) auto; align-items: end; gap: 10px; }
 .stageFilters label { color: var(--muted); font-size: .7rem; font-weight: 750; }
 .stageFilters input, .stageFilters select { width: 100%; margin-top: 5px; }
 .stageFilters > span { padding-bottom: 13px; color: var(--muted); font-size: .72rem; white-space: nowrap; }
@@ -480,6 +486,7 @@ button.dashboardWidget:disabled { cursor: default; opacity: 1; }
   .executionFilters > span { padding-bottom: 0; }
   .stageFilters { grid-template-columns: 1fr 1fr; }
   .stageFilters > span { padding-bottom: 0; }
+  .stagesEfficiencyCard { position: static; width: 100%; min-height: 150px; margin-bottom: 22px; }
   .stagesTable { overflow-x: auto; }
   .stagesTable thead th { position: static; }
   .reportToolbar { align-items: stretch; flex-direction: column; }

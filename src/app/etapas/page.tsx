@@ -42,11 +42,13 @@ export default async function StagesPage() {
       if (execution.status !== "completed") return [definition.key, "pending"];
       return [definition.key, "notApplicable"];
     })) as StageProcessRow["stages"];
-    return { id: execution.id, branch: execution.branchId, sale: execution.saleNumber, customerName: execution.customerName || "", checklistTitle, currentStage: currentNodeTitle, stages, successPercentage: calculateStageSuccess(stages) };
+    return { id: execution.id, branch: execution.branchId, sale: execution.saleNumber, customerName: execution.customerName || "", checklistTitle, currentStage: currentNodeTitle, stages, successPercentage: calculateStageSuccess(stages), checklistStatus: execution.status as StageProcessRow["checklistStatus"], createdAt: execution.createdAt.toISOString() };
   });
+  const today = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+  const defaultPeriod = { from: `${today.slice(0, 7)}-01`, to: today };
 
   return <AppShell user={user} permissions={permissions} active="stages" wide>
     <section className="heroRow"><div><p className="eyebrow">ACOMPANHAMENTO</p><h1>Etapas</h1><p className="muted">Acompanhe o andamento de cada venda, da separação à montagem.</p></div></section>
-    <section className="sectionBlock"><StagesBoard rows={rows} /></section>
+    <section className="sectionBlock"><StagesBoard rows={rows} defaultPeriod={defaultPeriod} /></section>
   </AppShell>;
 }

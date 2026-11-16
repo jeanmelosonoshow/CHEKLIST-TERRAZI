@@ -24,6 +24,8 @@ export type StageProcessRow = {
   checklistTitle?: string;
   currentStage?: string | null;
   successPercentage: number;
+  checklistStatus: "pending" | "in_progress" | "completed";
+  createdAt: string;
   stages: Record<StageKey, StageStatus>;
 };
 
