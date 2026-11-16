@@ -129,6 +129,7 @@ td small { margin-top: 4px; color: var(--muted); }
 .stageStatus-notPerformed { color: #765313; border-color: #efd99e; background: #fff0c7; }
 .stageStatus-partiallyCompleted { color: #943939; border-color: #efc1c1; background: #fbe2e2; }
 .stageStatus-notApplicable { color: #695941; border-color: #dfd1bd; background: #f1e9dc; }
+.stagesTable { position: relative; overflow: visible; }
 .stagesTable table { min-width: 1120px; }
 .stagesTable thead th { position: sticky; z-index: 4; top: 72px; background: #fafcfb; box-shadow: 0 1px 0 var(--line); }
 .stagesTable th:not(:first-child), .stagesTable td:not(:first-child) { text-align: center; }
@@ -425,6 +426,9 @@ button.dashboardWidget:disabled { cursor: default; opacity: 1; }
   .executionGrid { grid-template-columns: repeat(2, 1fr); }
   .executionFilters.completedFilters { grid-template-columns: repeat(2, minmax(150px, 1fr)); }
   .reportFilters { grid-template-columns: repeat(3, 1fr); }
+  .stagesTable { overflow-x: auto; }
+  .stagesTable thead th { position: static; }
+  .stagesTable th:first-child { position: static; }
   .sourceFormGrid { grid-template-columns: 1fr 1fr; }
   .flowWorkspace { grid-template-columns: minmax(480px, 1fr) 360px; }
   .productMappingGrid { grid-template-columns: 1fr; }
@@ -471,7 +475,8 @@ button.dashboardWidget:disabled { cursor: default; opacity: 1; }
   .executionFilters > span { padding-bottom: 0; }
   .stageFilters { grid-template-columns: 1fr 1fr; }
   .stageFilters > span { padding-bottom: 0; }
-  .stagesTable thead th { top: 114px; }
+  .stagesTable { overflow-x: auto; }
+  .stagesTable thead th { position: static; }
   .reportToolbar { align-items: stretch; flex-direction: column; }
   .reportFilters { grid-template-columns: 1fr 1fr; }
   .sourceFormGrid { grid-template-columns: 1fr 1fr; }
