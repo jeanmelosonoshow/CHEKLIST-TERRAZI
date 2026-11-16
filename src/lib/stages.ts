@@ -23,6 +23,7 @@ export type StageProcessRow = {
   customerName: string;
   checklistTitle?: string;
   currentStage?: string | null;
+  successPercentage: number;
   stages: Record<StageKey, StageStatus>;
 };
 
@@ -39,6 +40,23 @@ export function identifyStage(title: string): StageKey | null {
 export function isStageApplicabilityQuestion(title: string) {
   const normalized = normalizeStageTitle(title);
   return /\b(possui|tem|contem|existe|necessita)\b/.test(normalized) || normalized.includes("precisa de") || normalized.includes("ha ");
+}
+
+export function identifyStageStatusStep(title: string): StageKey | null {
+  const normalized = normalizeStageTitle(title);
+  if (/feedback|satisfacao|pesquisa|deseja registrar/.test(normalized)) return null;
+  if (/conferencia.*produto|produto.*confer/.test(normalized)) return "separation";
+  const stage = identifyStage(title);
+  if (!stage || isStageApplicabilityQuestion(title)) return stage;
+  if (stage === "delivery" && !/(pedido entregue|entrega realizada|entregue|realizada.*entrega)/.test(normalized)) return null;
+  return stage;
+}
+
+export function calculateStageSuccess(stages: Record<StageKey, StageStatus>) {
+  const applicable = Object.values(stages).filter((status) => status !== "notApplicable");
+  if (!applicable.length) return 0;
+  const score = applicable.reduce((total, status) => total + (status === "completed" ? 1 : status === "partiallyCompleted" ? .5 : 0), 0);
+  return Math.round((score / applicable.length) * 100);
 }
 
 function normalizeStageTitle(title: string) { return title.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase(); }

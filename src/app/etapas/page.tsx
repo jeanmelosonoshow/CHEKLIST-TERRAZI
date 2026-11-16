@@ -3,7 +3,7 @@ import { AppShell } from "@/components/AppShell";
 import { StagesBoard } from "@/components/StagesBoard";
 import { db } from "@/db";
 import { checklistExecutions, checklistFlowItemResponses, checklistFlowNodes, checklistFlowSteps, checklists } from "@/db/schema";
-import { identifyStage, isStageApplicabilityQuestion, stageDefinitions, type StageProcessRow, type StageStatus } from "@/lib/stages";
+import { calculateStageSuccess, identifyStage, identifyStageStatusStep, isStageApplicabilityQuestion, stageDefinitions, type StageProcessRow, type StageStatus } from "@/lib/stages";
 import { requirePermission } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
@@ -22,9 +22,10 @@ export default async function StagesPage() {
   ]);
   const rows: StageProcessRow[] = executions.map(({ execution, checklistTitle, currentNodeTitle }) => {
     const available = new Set(nodes.filter((node) => node.checklistId === execution.checklistId).map((node) => identifyStage(node.title)).filter(Boolean));
-    const executionSteps = steps.filter((step) => step.executionId === execution.id); const currentStage = currentNodeTitle ? identifyStage(currentNodeTitle) : null;
+    const executionSteps = steps.filter((step) => step.executionId === execution.id); const currentStage = currentNodeTitle ? identifyStageStatusStep(currentNodeTitle) : null;
     const stages = Object.fromEntries(stageDefinitions.map((definition) => {
-      const matchingSteps = executionSteps.filter((step) => identifyStage(step.title) === definition.key);
+      if (currentStage === definition.key) return [definition.key, "pending"];
+      const matchingSteps = executionSteps.filter((step) => identifyStageStatusStep(step.title) === definition.key);
       if (matchingSteps.length) {
         const applicabilitySteps = matchingSteps.filter((step) => isStageApplicabilityQuestion(step.title));
         const lastApplicability = applicabilitySteps.at(-1);
@@ -33,18 +34,18 @@ export default async function StagesPage() {
         if (!operationalSteps.length) return [definition.key, "pending"];
         const last = operationalSteps.at(-1)!; const productResults = itemResponses.filter((item) => item.executionId === execution.id && item.nodeId === last.nodeId);
         let status: StageStatus = "completed";
-        if (productResults.length && productResults.some((item) => item.success) && productResults.some((item) => !item.success)) status = "partiallyCompleted";
-        else if (last.answer === false || (productResults.length && productResults.every((item) => !item.success))) status = "notPerformed";
+        if (productResults.some((item) => !item.success)) status = "partiallyCompleted";
+        else if (last.answer === false) status = "notPerformed";
         return [definition.key, status];
       }
       if (!available.has(definition.key)) return [definition.key, "notApplicable"];
-      if (currentStage === definition.key || execution.status !== "completed") return [definition.key, "pending"];
+      if (execution.status !== "completed") return [definition.key, "pending"];
       return [definition.key, "notApplicable"];
     })) as StageProcessRow["stages"];
-    return { id: execution.id, branch: execution.branchId, sale: execution.saleNumber, customerName: execution.customerName || "", checklistTitle, currentStage: currentNodeTitle, stages };
+    return { id: execution.id, branch: execution.branchId, sale: execution.saleNumber, customerName: execution.customerName || "", checklistTitle, currentStage: currentNodeTitle, stages, successPercentage: calculateStageSuccess(stages) };
   });
 
-  return <AppShell user={user} permissions={permissions} active="stages">
+  return <AppShell user={user} permissions={permissions} active="stages" wide>
     <section className="heroRow"><div><p className="eyebrow">ACOMPANHAMENTO</p><h1>Etapas</h1><p className="muted">Acompanhe o andamento de cada venda, da separação à montagem.</p></div></section>
     <section className="sectionBlock"><StagesBoard rows={rows} /></section>
   </AppShell>;

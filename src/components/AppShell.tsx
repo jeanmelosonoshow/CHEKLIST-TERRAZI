@@ -2,7 +2,7 @@ import { Logo } from "./Logo";
 import { PrimaryNavigation } from "./PrimaryNavigation";
 import { isAdministrator, type PermissionSet } from "@/lib/permissions";
 
-export function AppShell({ children, user, permissions, active }: { children: React.ReactNode; user: { employeeName: string; employeeId: number }; permissions: PermissionSet; active?: "dashboard" | "dashboardSettings" | "sources" | "checklists" | "management" | "permissions" | "reports" | "stages" }) {
+export function AppShell({ children, user, permissions, active, wide = false }: { children: React.ReactNode; user: { employeeName: string; employeeId: number }; permissions: PermissionSet; active?: "dashboard" | "dashboardSettings" | "sources" | "checklists" | "management" | "permissions" | "reports" | "stages"; wide?: boolean }) {
   const initials = user.employeeName.split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
   const administrator = isAdministrator(user);
   return (
@@ -14,7 +14,7 @@ export function AppShell({ children, user, permissions, active }: { children: Re
           <form action="/api/auth/logout" method="post"><button className="textButton logoutButton">Sair</button></form>
         </div>
       </header>
-      <main className="content">{children}</main>
+      <main className={`content ${wide ? "wideContent" : ""}`}>{children}</main>
     </div>
   );
 }

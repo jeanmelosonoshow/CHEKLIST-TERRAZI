@@ -16,11 +16,12 @@ export function StagesBoard({ rows }: { rows: StageProcessRow[] }) {
       {Object.entries(stageStatuses).map(([status, definition]) => <StageStatusBadge status={status as StageStatus} key={definition.label} />)}
     </div>
 
-    {rows.length ? <><div className="stageFilters"><label>Etapa<select value={stage} onChange={(event) => setStage(event.target.value as StageKey | "")}><option value="">Todas as etapas</option>{stageDefinitions.map((item) => <option key={item.key} value={item.key}>{item.label}</option>)}</select></label><label>Filial<input value={branch} onChange={(event) => setBranch(event.target.value)} placeholder="Ex.: 29" /></label><label>Número da saída<input value={sale} onChange={(event) => setSale(event.target.value)} placeholder="Ex.: 5351" /></label><label>Cliente<input value={customer} onChange={(event) => setCustomer(event.target.value)} placeholder="Nome do cliente" /></label><span>{filtered.length} venda(s)</span></div><div className="tableWrap responsiveTable stagesTable">
+    {rows.length ? <><div className="stageFilters"><label>Etapa atual<select value={stage} onChange={(event) => setStage(event.target.value as StageKey | "")}><option value="">Todas as etapas</option>{stageDefinitions.map((item) => <option key={item.key} value={item.key}>{item.label}</option>)}</select></label><label>Filial<input value={branch} onChange={(event) => setBranch(event.target.value)} placeholder="Ex.: 29" /></label><label>Número da saída<input value={sale} onChange={(event) => setSale(event.target.value)} placeholder="Ex.: 5351" /></label><label>Cliente<input value={customer} onChange={(event) => setCustomer(event.target.value)} placeholder="Nome do cliente" /></label><span>{filtered.length} venda(s)</span></div><div className="tableWrap responsiveTable stagesTable">
       <table>
-        <thead><tr><th>Filial · Venda · Cliente</th>{stageDefinitions.map((stage) => <th key={stage.key}>{stage.label}</th>)}</tr></thead>
+        <thead><tr><th>Filial · Venda · Cliente</th><th>Sucesso geral</th>{stageDefinitions.map((stage) => <th key={stage.key}>{stage.label}</th>)}</tr></thead>
         <tbody>{filtered.map((row) => <tr key={row.id}>
           <td data-label="Venda"><strong>{row.customerName || "Cliente não identificado"}</strong><small>Filial {row.branch} · Saída {row.sale}{row.checklistTitle ? ` · ${row.checklistTitle}` : ""}</small>{row.currentStage && <small className="currentStageText">Atual: {row.currentStage}</small>}</td>
+          <td data-label="Sucesso geral"><div className="stageSuccess"><strong>{row.successPercentage}%</strong><i><span style={{ width: `${row.successPercentage}%` }} /></i></div></td>
           {stageDefinitions.map((stage) => <td data-label={stage.label} key={stage.key}><StageStatusBadge status={row.stages[stage.key]} /></td>)}
         </tr>)}</tbody>
       </table>
