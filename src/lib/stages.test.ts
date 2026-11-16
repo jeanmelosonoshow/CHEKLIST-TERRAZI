@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calculateStageSuccess, identifyItemConferenceStage, identifyStage, identifyStageStatusStep, isStageApplicabilityQuestion, stageDefinitions, stageStatuses } from "./stages";
+import { calculateStageSuccess, identifyItemConferenceStage, identifyStage, identifyStageStatusStep, isFailedStageAnswer, isStageApplicabilityQuestion, stageDefinitions, stageStatuses } from "./stages";
 
 describe("stages model", () => {
   it("keeps the five initial stages in the expected order", () => {
@@ -54,6 +54,15 @@ describe("stages model", () => {
 
   it("associates a generic product conference with separation", () => {
     expect(identifyItemConferenceStage("Conferência dos Produtos")).toBe("separation");
+  });
+
+  it("recognizes failed manual and historical automatic answers", () => {
+    expect(isFailedStageAnswer(false)).toBe(true);
+    expect(isFailedStageAnswer("Não")).toBe(true);
+    expect(isFailedStageAnswer("RETORNO")).toBe(true);
+    expect(isFailedStageAnswer("RETORNO AO DEPÓSITO")).toBe(true);
+    expect(isFailedStageAnswer("ENTREGUE")).toBe(false);
+    expect(isFailedStageAnswer("Sim")).toBe(false);
   });
 
   it("calculates overall success ignoring stages that the sale does not have", () => {

@@ -3,7 +3,7 @@ import { AppShell } from "@/components/AppShell";
 import { StagesBoard } from "@/components/StagesBoard";
 import { db } from "@/db";
 import { checklistExecutions, checklistFlowItemResponses, checklistFlowNodes, checklistFlowSteps, checklists } from "@/db/schema";
-import { calculateStageSuccess, identifyItemConferenceStage, identifyStage, identifyStageStatusStep, isStageApplicabilityQuestion, stageDefinitions, type StageProcessRow, type StageStatus } from "@/lib/stages";
+import { calculateStageSuccess, identifyItemConferenceStage, identifyStage, identifyStageStatusStep, isFailedStageAnswer, isStageApplicabilityQuestion, stageDefinitions, type StageProcessRow, type StageStatus } from "@/lib/stages";
 import { requirePermission } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
@@ -29,13 +29,13 @@ export default async function StagesPage() {
       if (matchingSteps.length) {
         const applicabilitySteps = matchingSteps.filter((step) => isStageApplicabilityQuestion(step.title));
         const lastApplicability = applicabilitySteps.at(-1);
-        if (lastApplicability?.answer === false) return [definition.key, "notApplicable"];
+        if (lastApplicability && isFailedStageAnswer(lastApplicability.answer)) return [definition.key, "notApplicable"];
         const operationalSteps = matchingSteps.filter((step) => !isStageApplicabilityQuestion(step.title));
         if (!operationalSteps.length) return [definition.key, "pending"];
         const last = operationalSteps.at(-1)!; const productResults = itemResponses.filter((item) => item.executionId === execution.id && item.nodeId === last.nodeId);
         let status: StageStatus = "completed";
         if (productResults.some((item) => !item.success)) status = "partiallyCompleted";
-        else if (last.answer === false) status = "notPerformed";
+        else if (isFailedStageAnswer(last.answer)) status = "notPerformed";
         return [definition.key, status];
       }
       if (!available.has(definition.key)) return [definition.key, "notApplicable"];
@@ -47,7 +47,7 @@ export default async function StagesPage() {
       const itemStage = identifyItemConferenceStage(nodeTitleById.get(item.nodeId) || "");
       if (itemStage && stages[itemStage] !== "notApplicable") stages[itemStage] = "partiallyCompleted";
     }
-    return { id: execution.id, branch: execution.branchId, sale: execution.saleNumber, customerName: execution.customerName || "", checklistTitle, currentStage: currentNodeTitle, stages, successPercentage: calculateStageSuccess(stages), checklistStatus: execution.status as StageProcessRow["checklistStatus"], createdAt: execution.createdAt.toISOString() };
+    return { id: execution.id, branch: execution.branchId, sale: execution.saleNumber, customerName: execution.customerName || "", checklistTitle, currentStage: currentNodeTitle, stages, successPercentage: calculateStageSuccess(stages), checklistStatus: execution.status as StageProcessRow["checklistStatus"], outcome: execution.outcome, createdAt: execution.createdAt.toISOString() };
   });
   const today = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
   const defaultPeriod = { from: `${today.slice(0, 7)}-01`, to: today };

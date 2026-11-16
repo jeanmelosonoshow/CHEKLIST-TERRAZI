@@ -25,6 +25,7 @@ export type StageProcessRow = {
   currentStage?: string | null;
   successPercentage: number;
   checklistStatus: "pending" | "in_progress" | "completed";
+  outcome: "success" | "failure" | null;
   createdAt: string;
   stages: Record<StageKey, StageStatus>;
 };
@@ -60,6 +61,13 @@ export function identifyItemConferenceStage(title: string): StageKey | null {
   const normalized = normalizeStageTitle(title);
   if (/conferencia.*produto|produto.*confer/.test(normalized)) return "separation";
   return identifyStage(title);
+}
+
+export function isFailedStageAnswer(answer: unknown) {
+  if (answer === false || answer === 0) return true;
+  if (typeof answer !== "string") return false;
+  const normalized = normalizeStageTitle(answer).trim();
+  return /^(false|0|n|nao|retorno|devolvid[oa]|cancelad[oa]|insucesso|falha|nao entregue|nao realizad[oa])(?:\b|$)/.test(normalized);
 }
 
 export function calculateStageSuccess(stages: Record<StageKey, StageStatus>) {
