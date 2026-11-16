@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { stageDefinitions, stageStatuses } from "./stages";
+import { identifyStage, stageDefinitions, stageStatuses } from "./stages";
 
 describe("stages model", () => {
   it("keeps the five initial stages in the expected order", () => {
@@ -20,5 +20,13 @@ describe("stages model", () => {
       "Realizado parcialmente",
       "Não possui",
     ]);
+  });
+
+  it("maps flow block titles to the operational stage", () => {
+    expect(identifyStage("Separação realizada? ")).toBe("separation");
+    expect(identifyStage("Possui Desmontagem? ")).toBe("disassembly");
+    expect(identifyStage("Impermeabilização concluída")).toBe("waterproofing");
+    expect(identifyStage("Pedido entregue")).toBe("delivery");
+    expect(identifyStage("Montagem finalizada")).toBe("assembly");
   });
 });

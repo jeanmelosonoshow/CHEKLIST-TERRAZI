@@ -25,7 +25,9 @@ export default async function ChecklistsPage() {
     nextAutomationAt: execution.nextAutomationAt?.toISOString() ?? null, lastAutomationAt: execution.lastAutomationAt?.toISOString() ?? null,
     createdAt: execution.createdAt.toISOString(), updatedAt: execution.updatedAt.toISOString(),
   }));
+  const today = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+  const defaultPeriod = { from: `${today.slice(0, 7)}-01`, to: today };
   return <AppShell user={user} permissions={permissions} active="checklists">
-    <ChecklistExecutionWorkspace templates={templates} initialExecutions={executions} defaultBranchId={user.branchId} />
+    <ChecklistExecutionWorkspace templates={templates} initialExecutions={executions} defaultBranchId={user.branchId} defaultPeriod={defaultPeriod} />
   </AppShell>;
 }

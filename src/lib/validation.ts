@@ -183,3 +183,18 @@ export const simulateChecklistFlowSchema = z.object({
   saleItems: z.array(z.object({ code: z.string().max(200), description: z.string().max(2000), quantity: z.union([z.string().max(100), z.number()]) })).max(1000).optional(),
   itemAnswers: z.array(z.object({ itemIndex: z.number().int().min(0).max(9999), success: z.boolean(), observation: z.string().trim().max(2000).nullish() })).max(1000).optional(),
 });
+
+const reportDefinitionBaseSchema = z.object({
+  title: z.string().trim().min(3).max(160), description: z.string().trim().max(1000).nullish(),
+  dataSource: z.enum(["firebird", "postgres", "hybrid"]), primarySql: z.string().trim().min(6).max(50_000), secondarySql: z.string().trim().max(50_000).nullish(),
+  combineMode: z.enum(["append", "join"]).default("append"), joinFields: z.array(z.string().trim().min(1).max(120)).max(20).default([]), active: z.boolean().default(true),
+});
+export const reportDefinitionSchema = reportDefinitionBaseSchema.superRefine((value, context) => {
+  if (value.dataSource === "hybrid" && !value.secondarySql) context.addIssue({ code: "custom", path: ["secondarySql"], message: "Informe a consulta PostgreSQL." });
+  if (value.dataSource === "hybrid" && value.combineMode === "join" && !value.joinFields.length) context.addIssue({ code: "custom", path: ["joinFields"], message: "Informe ao menos um campo para relacionar as fontes." });
+});
+
+export const reportPreviewSchema = reportDefinitionBaseSchema.pick({ dataSource: true, primarySql: true, secondarySql: true, combineMode: true, joinFields: true }).superRefine((value, context) => {
+  if (value.dataSource === "hybrid" && !value.secondarySql) context.addIssue({ code: "custom", path: ["secondarySql"], message: "Informe a consulta PostgreSQL." });
+  if (value.dataSource === "hybrid" && value.combineMode === "join" && !value.joinFields.length) context.addIssue({ code: "custom", path: ["joinFields"], message: "Informe ao menos um campo para relacionar as fontes." });
+});

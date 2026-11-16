@@ -51,6 +51,8 @@ export const dashboardDisplayFormatEnum = pgEnum("formato_exibicao_dashboard", [
   "month_name",
   "weekday",
 ]);
+export const reportDataSourceEnum = pgEnum("origem_dados_relatorio", ["firebird", "postgres", "hybrid"]);
+export const reportCombineModeEnum = pgEnum("modo_combinacao_relatorio", ["append", "join"]);
 
 export const users = pgTable(
   "usuarios",
@@ -381,6 +383,26 @@ export const dashboardScenarioHistory = pgTable(
     changedAt: timestamp("alterado_em", { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [index("historico_cenarios_dashboard_cenario_versao_idx").on(table.scenarioId, table.version)],
+);
+
+export const reportDefinitions = pgTable(
+  "relatorios_configuraveis",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    title: text("titulo").notNull(),
+    description: text("descricao"),
+    dataSource: reportDataSourceEnum("origem_dados").notNull(),
+    primarySql: text("sql_principal").notNull(),
+    secondarySql: text("sql_secundario"),
+    combineMode: reportCombineModeEnum("modo_combinacao").default("append").notNull(),
+    joinFields: jsonb("campos_uniao").$type<string[]>().default([]).notNull(),
+    active: boolean("ativo").default(true).notNull(),
+    createdBy: uuid("criado_por").notNull().references(() => users.id),
+    updatedBy: uuid("atualizado_por").notNull().references(() => users.id),
+    createdAt: timestamp("criado_em", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("atualizado_em", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [index("relatorios_configuraveis_ativo_titulo_idx").on(table.active, table.title)],
 );
 
 export type User = typeof users.$inferSelect;

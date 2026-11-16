@@ -117,6 +117,11 @@ td small { margin-top: 4px; color: var(--muted); }
 .accessDenied h1 { font-size: 2rem; }
 .accessDenied .primaryButton { margin-top: 20px; }
 .stageLegend { display: flex; margin-bottom: 18px; flex-wrap: wrap; gap: 8px; }
+.stageFilters { display: grid; margin-bottom: 18px; grid-template-columns: repeat(4, minmax(145px, 1fr)) auto; align-items: end; gap: 12px; }
+.stageFilters label { color: var(--muted); font-size: .7rem; font-weight: 750; }
+.stageFilters input, .stageFilters select { width: 100%; margin-top: 5px; }
+.stageFilters > span { padding-bottom: 13px; color: var(--muted); font-size: .72rem; white-space: nowrap; }
+.currentStageText { color: var(--green) !important; font-weight: 750; }
 .stageStatus { display: inline-flex; min-height: 30px; padding: 6px 9px; align-items: center; gap: 7px; border: 1px solid transparent; border-radius: 999px; font-size: .64rem; font-weight: 850; letter-spacing: .035em; line-height: 1.25; text-transform: uppercase; white-space: nowrap; }
 .stageStatusDot { width: 7px; height: 7px; flex: 0 0 7px; border-radius: 50%; background: currentColor; }
 .stageStatus-pending { color: #58625d; border-color: #d8dedb; background: #edf0ee; }
@@ -230,6 +235,32 @@ button.dashboardWidget:disabled { cursor: default; opacity: 1; }
 .executionCard p { margin-bottom: 6px; color: var(--muted); font-size: .82rem; }
 .executionCard > small { margin-bottom: 18px; color: var(--muted); font-size: .75rem; }
 .executionCard.readyForAction { border-color: #68a88f; box-shadow: 0 0 0 3px rgba(18,107,80,.08), 0 14px 30px rgba(20,50,38,.08); }
+.executionFilters { display: grid; margin-bottom: 18px; grid-template-columns: repeat(2, minmax(180px, 1fr)) auto; align-items: end; gap: 12px; }
+.executionFilters.completedFilters { grid-template-columns: repeat(4, minmax(150px, 1fr)) auto; }
+.executionFilters label { color: var(--muted); font-size: .7rem; font-weight: 750; }
+.executionFilters input { width: 100%; margin-top: 5px; }
+.executionFilters > span { padding-bottom: 13px; color: var(--muted); font-size: .72rem; white-space: nowrap; }
+.executionChecklistName { margin: 16px 0 0 !important; color: var(--green) !important; font-size: .66rem !important; font-weight: 850; letter-spacing: .05em; text-transform: uppercase; }
+.executionCard .executionCustomerName { margin: 7px 0 8px; font-size: 1.12rem; line-height: 1.25; }
+.executionCurrentStage { display: grid !important; margin: 10px 0 14px; padding: 10px 12px; justify-content: stretch !important; gap: 3px !important; border-radius: 10px; background: #edf6f2; }
+.executionCurrentStage small { color: var(--muted); font-size: .61rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; }
+.executionCurrentStage strong { color: var(--green); font-size: .8rem; }
+.completedCustomerName { font-size: .86rem; }
+.completedExecutions td small { display: block; margin-top: 4px; color: var(--muted); }
+.reportToolbar { display: flex; margin-bottom: 16px; align-items: end; justify-content: space-between; gap: 14px; }
+.reportToolbar label { min-width: min(460px, 100%); color: var(--muted); font-size: .72rem; font-weight: 750; }
+.reportToolbar select { width: 100%; margin-top: 5px; }
+.reportDefinitions { display: flex; margin-bottom: 18px; gap: 8px; overflow-x: auto; }
+.reportDefinitions button { display: grid; min-width: 190px; padding: 10px 12px; gap: 3px; border: 1px solid var(--line); border-radius: 10px; background: white; text-align: left; }
+.reportDefinitions small { color: var(--muted); }
+.reportFilters { display: grid; margin-bottom: 18px; grid-template-columns: repeat(5, minmax(120px, 1fr)) auto auto; align-items: end; gap: 10px; }
+.reportFilters label { color: var(--muted); font-size: .68rem; font-weight: 750; }
+.reportFilters input { width: 100%; margin-top: 5px; }
+.reportFilters button { min-height: 44px; }
+.reportResult { max-height: 65vh; }
+.reportResult table { min-width: max-content; }
+.reportResult th { position: sticky; z-index: 1; top: 0; background: #fafcfb; }
+.reportBuilder { width: min(1100px, 100%); }
 .automationBadge, .actionBadge { display: block; margin: 2px 0 12px; padding: 7px 9px; border-radius: 8px; font-size: .67rem; font-weight: 750; }
 .automationBadge { color: #315472; background: #e9f3fa; }
 .actionBadge { color: #0f654c; background: #e5f5ed; }
@@ -391,6 +422,8 @@ button.dashboardWidget:disabled { cursor: default; opacity: 1; }
   .tableWidget { grid-column: span 12; }
   .scenarioOptions { grid-template-columns: repeat(3, 1fr); }
   .executionGrid { grid-template-columns: repeat(2, 1fr); }
+  .executionFilters.completedFilters { grid-template-columns: repeat(2, minmax(150px, 1fr)); }
+  .reportFilters { grid-template-columns: repeat(3, 1fr); }
   .sourceFormGrid { grid-template-columns: 1fr 1fr; }
   .flowWorkspace { grid-template-columns: minmax(480px, 1fr) 360px; }
   .productMappingGrid { grid-template-columns: 1fr; }
@@ -433,6 +466,12 @@ button.dashboardWidget:disabled { cursor: default; opacity: 1; }
   .donutChart { width: 130px; height: 130px; }
   .donutChart::before { width: 82px; height: 82px; }
   .executionGrid { grid-template-columns: 1fr; }
+  .executionFilters, .executionFilters.completedFilters { grid-template-columns: 1fr; }
+  .executionFilters > span { padding-bottom: 0; }
+  .stageFilters { grid-template-columns: 1fr 1fr; }
+  .stageFilters > span { padding-bottom: 0; }
+  .reportToolbar { align-items: stretch; flex-direction: column; }
+  .reportFilters { grid-template-columns: 1fr 1fr; }
   .sourceFormGrid { grid-template-columns: 1fr 1fr; }
   .flowExecutionTimeline { max-height: 180px; overflow-y: auto; }
 }
@@ -464,6 +503,8 @@ button.dashboardWidget:disabled { cursor: default; opacity: 1; }
   .stagesTable .stageStatus { max-width: 58%; justify-content: flex-end; white-space: normal; text-align: right; }
 }
 @media (max-width: 470px) {
+  .stageFilters { grid-template-columns: 1fr; }
+  .reportFilters { grid-template-columns: 1fr; }
   .loginIntro { min-height: 250px; padding: 22px; }
   .loginIntro div > p:last-child { margin-bottom: 0; font-size: .9rem; line-height: 1.5; }
   .loginPanel { padding: 34px 20px max(34px, env(safe-area-inset-bottom)); }

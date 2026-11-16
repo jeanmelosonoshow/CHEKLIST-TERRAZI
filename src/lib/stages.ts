@@ -21,5 +21,17 @@ export type StageProcessRow = {
   branch: string;
   sale: string;
   customerName: string;
+  checklistTitle?: string;
+  currentStage?: string | null;
   stages: Record<StageKey, StageStatus>;
 };
+
+export function identifyStage(title: string): StageKey | null {
+  const normalized = title.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  if (normalized.includes("desmont")) return "disassembly";
+  if (normalized.includes("impermeab")) return "waterproofing";
+  if (normalized.includes("separ")) return "separation";
+  if (normalized.includes("entrega") || normalized.includes("entregue") || normalized.includes("transito")) return "delivery";
+  if (normalized.includes("montag")) return "assembly";
+  return null;
+}

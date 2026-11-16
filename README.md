@@ -153,6 +153,8 @@ A migration `0018_respostas_produtos_fluxo.sql` permite configurar uma ação/co
 
 A migration `0019_interagir_todas_demandas.sql` adiciona a permissão **Interagir nas demandas de todos** por categoria. Quando habilitada, o usuário pode responder, salvar e avançar demandas atribuídas a outros usuários. A opção habilita também a visualização dos checklists e das demandas de todos; sem ela, **Ver demandas de todos** continua oferecendo apenas consulta.
 
+A migration `0020_relatorios_configuraveis.sql` cria a área de relatórios livres. O administrador pode cadastrar consultas somente de leitura no Firebird/SonoShowGateway, no PostgreSQL ou combinar as duas fontes empilhando linhas ou relacionando-as por campos comuns. Os relatórios aceitam filtros parametrizados de filial, saída, cliente e período e podem ser exportados em CSV. A área **Etapas** cruza a identificação da venda obtida no Firebird com o andamento do fluxo armazenado no PostgreSQL.
+
 A seção **Etapas** possui permissão própria por categoria e um painel responsivo preparado para apresentar uma linha por filial, venda e cliente. O molde inicial contém Separação, Desmontagem, Impermeabilização, Entrega e Montagem. A persistência operacional ficará desacoplada até que a origem dos selects e a estratégia de salvamento sejam definidas.
 
 O MD5 existe apenas por compatibilidade e não é adequado para novas senhas. Uma fase futura pode migrar gradualmente para Argon2/bcrypt quando a sincronização não sobrescrever mais o valor.

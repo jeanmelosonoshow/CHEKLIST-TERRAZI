@@ -11,6 +11,9 @@ const allowedParameters = new Set([
   "detalhe_serie",
   "numero_venda",
   "numerosaida",
+  "data_inicial",
+  "data_final",
+  "cliente",
 ]);
 
 export type DashboardQueryContext = {
@@ -21,6 +24,9 @@ export type DashboardQueryContext = {
   detailField?: string;
   detailSeries?: string;
   saleNumber?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  customer?: string;
 };
 
 export function maskSqlLiteralsAndIdentifiers(sql: string) {
@@ -78,6 +84,9 @@ export function prepareDashboardQuery(
     detalhe_serie: context.detailSeries ?? null,
     numero_venda: context.saleNumber ?? null,
     numerosaida: context.saleNumber ?? null,
+    data_inicial: context.dateFrom ?? null,
+    data_final: context.dateTo ?? null,
+    cliente: context.customer ?? null,
   };
   let result = "";
   let state: "normal" | "literal" | "identifier" = "normal";

@@ -32,4 +32,10 @@ describe("dashboard query", () => {
   it("accepts numerosaida as an alias for flow queries", () => {
     expect(prepareDashboardQuery("SELECT * FROM SAIDA WHERE NUMEROSAIDA = :numerosaida", { branchId: "20", employeeId: 752, category: null, saleNumber: "99" }).params).toEqual(["99"]);
   });
+  it("parameterizes report filters for customer and period", () => {
+    expect(prepareDashboardQuery(
+      "SELECT * FROM VENDA WHERE CLIENTE LIKE :cliente AND DATA BETWEEN :data_inicial AND :data_final",
+      { branchId: "20", employeeId: 752, category: null, customer: "%SILVIA%", dateFrom: "2026-11-01", dateTo: "2026-11-16" },
+    ).params).toEqual(["%SILVIA%", "2026-11-01", "2026-11-16"]);
+  });
 });
