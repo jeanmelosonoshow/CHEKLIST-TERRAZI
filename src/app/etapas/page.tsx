@@ -3,7 +3,7 @@ import { AppShell } from "@/components/AppShell";
 import { StagesBoard } from "@/components/StagesBoard";
 import { db } from "@/db";
 import { checklistExecutions, checklistFlowItemResponses, checklistFlowNodes, checklistFlowSteps, checklists } from "@/db/schema";
-import { identifyStage, stageDefinitions, type StageProcessRow, type StageStatus } from "@/lib/stages";
+import { identifyStage, isStageApplicabilityQuestion, stageDefinitions, type StageProcessRow, type StageStatus } from "@/lib/stages";
 import { requirePermission } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
@@ -17,7 +17,7 @@ export default async function StagesPage() {
   const executionIds = executions.map((row) => row.execution.id); const checklistIds = [...new Set(executions.map((row) => row.execution.checklistId))];
   const [nodes, steps, itemResponses] = await Promise.all([
     checklistIds.length ? db.select({ id: checklistFlowNodes.id, checklistId: checklistFlowNodes.checklistId, title: checklistFlowNodes.title }).from(checklistFlowNodes).where(inArray(checklistFlowNodes.checklistId, checklistIds)) : [],
-    executionIds.length ? db.select({ executionId: checklistFlowSteps.executionId, nodeId: checklistFlowSteps.nodeId, answer: checklistFlowSteps.answer, title: checklistFlowNodes.title }).from(checklistFlowSteps).innerJoin(checklistFlowNodes, eq(checklistFlowSteps.nodeId, checklistFlowNodes.id)).where(inArray(checklistFlowSteps.executionId, executionIds)) : [],
+    executionIds.length ? db.select({ executionId: checklistFlowSteps.executionId, nodeId: checklistFlowSteps.nodeId, answer: checklistFlowSteps.answer, title: checklistFlowNodes.title }).from(checklistFlowSteps).innerJoin(checklistFlowNodes, eq(checklistFlowSteps.nodeId, checklistFlowNodes.id)).where(inArray(checklistFlowSteps.executionId, executionIds)).orderBy(asc(checklistFlowSteps.id)) : [],
     executionIds.length ? db.select({ executionId: checklistFlowItemResponses.executionId, nodeId: checklistFlowItemResponses.nodeId, success: checklistFlowItemResponses.success }).from(checklistFlowItemResponses).where(inArray(checklistFlowItemResponses.executionId, executionIds)) : [],
   ]);
   const rows: StageProcessRow[] = executions.map(({ execution, checklistTitle, currentNodeTitle }) => {
@@ -26,7 +26,12 @@ export default async function StagesPage() {
     const stages = Object.fromEntries(stageDefinitions.map((definition) => {
       const matchingSteps = executionSteps.filter((step) => identifyStage(step.title) === definition.key);
       if (matchingSteps.length) {
-        const last = matchingSteps.at(-1)!; const productResults = itemResponses.filter((item) => item.executionId === execution.id && item.nodeId === last.nodeId);
+        const applicabilitySteps = matchingSteps.filter((step) => isStageApplicabilityQuestion(step.title));
+        const lastApplicability = applicabilitySteps.at(-1);
+        if (lastApplicability?.answer === false) return [definition.key, "notApplicable"];
+        const operationalSteps = matchingSteps.filter((step) => !isStageApplicabilityQuestion(step.title));
+        if (!operationalSteps.length) return [definition.key, "pending"];
+        const last = operationalSteps.at(-1)!; const productResults = itemResponses.filter((item) => item.executionId === execution.id && item.nodeId === last.nodeId);
         let status: StageStatus = "completed";
         if (productResults.length && productResults.some((item) => item.success) && productResults.some((item) => !item.success)) status = "partiallyCompleted";
         else if (last.answer === false || (productResults.length && productResults.every((item) => !item.success))) status = "notPerformed";

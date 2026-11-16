@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { identifyStage, stageDefinitions, stageStatuses } from "./stages";
+import { identifyStage, isStageApplicabilityQuestion, stageDefinitions, stageStatuses } from "./stages";
 
 describe("stages model", () => {
   it("keeps the five initial stages in the expected order", () => {
@@ -28,5 +28,12 @@ describe("stages model", () => {
     expect(identifyStage("Impermeabilização concluída")).toBe("waterproofing");
     expect(identifyStage("Pedido entregue")).toBe("delivery");
     expect(identifyStage("Montagem finalizada")).toBe("assembly");
+  });
+
+  it("distinguishes applicability questions from operational confirmations", () => {
+    expect(isStageApplicabilityQuestion("Tem desmontagem?")).toBe(true);
+    expect(isStageApplicabilityQuestion("Possui impermeabilização?")).toBe(true);
+    expect(isStageApplicabilityQuestion("Desmontagem realizada?")).toBe(false);
+    expect(isStageApplicabilityQuestion("Impermeabilização concluída?")).toBe(false);
   });
 });

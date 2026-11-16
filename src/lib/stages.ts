@@ -27,7 +27,7 @@ export type StageProcessRow = {
 };
 
 export function identifyStage(title: string): StageKey | null {
-  const normalized = title.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  const normalized = normalizeStageTitle(title);
   if (normalized.includes("desmont")) return "disassembly";
   if (normalized.includes("impermeab")) return "waterproofing";
   if (normalized.includes("separ")) return "separation";
@@ -35,3 +35,10 @@ export function identifyStage(title: string): StageKey | null {
   if (normalized.includes("montag")) return "assembly";
   return null;
 }
+
+export function isStageApplicabilityQuestion(title: string) {
+  const normalized = normalizeStageTitle(title);
+  return /\b(possui|tem|contem|existe|necessita)\b/.test(normalized) || normalized.includes("precisa de") || normalized.includes("ha ");
+}
+
+function normalizeStageTitle(title: string) { return title.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase(); }
