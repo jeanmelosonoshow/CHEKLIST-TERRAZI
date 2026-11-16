@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calculateStageSuccess, identifyStage, identifyStageStatusStep, isStageApplicabilityQuestion, stageDefinitions, stageStatuses } from "./stages";
+import { calculateStageSuccess, identifyItemConferenceStage, identifyStage, identifyStageStatusStep, isStageApplicabilityQuestion, stageDefinitions, stageStatuses } from "./stages";
 
 describe("stages model", () => {
   it("keeps the five initial stages in the expected order", () => {
@@ -41,6 +41,19 @@ describe("stages model", () => {
     expect(identifyStageStatusStep("Pedido Entregue?")).toBe("delivery");
     expect(identifyStageStatusStep("Pós satisfação sobre a entrega realizado?")).toBeNull();
     expect(identifyStageStatusStep("Deseja registrar feedback da entrega?")).toBeNull();
+  });
+
+  it("uses only the authoritative result question for each stage", () => {
+    expect(identifyStageStatusStep("Separação Realizada?")).toBe("separation");
+    expect(identifyStageStatusStep("Agendamento Montagem Realizado?")).toBeNull();
+    expect(identifyStageStatusStep("Montado Com Sucesso?")).toBe("assembly");
+    expect(identifyStageStatusStep("Desmontagem Realizada?")).toBe("disassembly");
+    expect(identifyStageStatusStep("Impermeabilização concluída?")).toBe("waterproofing");
+    expect(identifyStageStatusStep("Pedido Entregue?")).toBe("delivery");
+  });
+
+  it("associates a generic product conference with separation", () => {
+    expect(identifyItemConferenceStage("Conferência dos Produtos")).toBe("separation");
   });
 
   it("calculates overall success ignoring stages that the sale does not have", () => {

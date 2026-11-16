@@ -3,7 +3,7 @@ import { AppShell } from "@/components/AppShell";
 import { StagesBoard } from "@/components/StagesBoard";
 import { db } from "@/db";
 import { checklistExecutions, checklistFlowItemResponses, checklistFlowNodes, checklistFlowSteps, checklists } from "@/db/schema";
-import { calculateStageSuccess, identifyStage, identifyStageStatusStep, isStageApplicabilityQuestion, stageDefinitions, type StageProcessRow, type StageStatus } from "@/lib/stages";
+import { calculateStageSuccess, identifyItemConferenceStage, identifyStage, identifyStageStatusStep, isStageApplicabilityQuestion, stageDefinitions, type StageProcessRow, type StageStatus } from "@/lib/stages";
 import { requirePermission } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
@@ -42,6 +42,11 @@ export default async function StagesPage() {
       if (execution.status !== "completed") return [definition.key, "pending"];
       return [definition.key, "notApplicable"];
     })) as StageProcessRow["stages"];
+    const nodeTitleById = new Map(nodes.filter((node) => node.checklistId === execution.checklistId).map((node) => [node.id, node.title]));
+    for (const item of itemResponses.filter((response) => response.executionId === execution.id && !response.success)) {
+      const itemStage = identifyItemConferenceStage(nodeTitleById.get(item.nodeId) || "");
+      if (itemStage && stages[itemStage] !== "notApplicable") stages[itemStage] = "partiallyCompleted";
+    }
     return { id: execution.id, branch: execution.branchId, sale: execution.saleNumber, customerName: execution.customerName || "", checklistTitle, currentStage: currentNodeTitle, stages, successPercentage: calculateStageSuccess(stages), checklistStatus: execution.status as StageProcessRow["checklistStatus"], createdAt: execution.createdAt.toISOString() };
   });
   const today = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());

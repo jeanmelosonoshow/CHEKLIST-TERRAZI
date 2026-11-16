@@ -35,7 +35,7 @@ export function identifyStage(title: string): StageKey | null {
   if (normalized.includes("impermeab")) return "waterproofing";
   if (normalized.includes("separ")) return "separation";
   if (normalized.includes("entrega") || normalized.includes("entregue") || normalized.includes("transito")) return "delivery";
-  if (normalized.includes("montag")) return "assembly";
+  if (normalized.includes("montag") || normalized.includes("montad")) return "assembly";
   return null;
 }
 
@@ -46,12 +46,20 @@ export function isStageApplicabilityQuestion(title: string) {
 
 export function identifyStageStatusStep(title: string): StageKey | null {
   const normalized = normalizeStageTitle(title);
-  if (/feedback|satisfacao|pesquisa|deseja registrar/.test(normalized)) return null;
-  if (/conferencia.*produto|produto.*confer/.test(normalized)) return "separation";
   const stage = identifyStage(title);
   if (!stage || isStageApplicabilityQuestion(title)) return stage;
-  if (stage === "delivery" && !/(pedido entregue|entrega realizada|entregue|realizada.*entrega)/.test(normalized)) return null;
-  return stage;
+  if (stage === "separation") return /separacao (realizada|concluida)|separado com sucesso/.test(normalized) ? stage : null;
+  if (stage === "disassembly") return /desmontagem (realizada|concluida)|desmontado com sucesso/.test(normalized) ? stage : null;
+  if (stage === "waterproofing") return /impermeabilizacao (realizada|concluida)|impermeabilizado com sucesso/.test(normalized) ? stage : null;
+  if (stage === "delivery") return /(pedido entregue|entrega realizada|entregue com sucesso)/.test(normalized) ? stage : null;
+  if (stage === "assembly") return /montagem (realizada|concluida)|montado com sucesso/.test(normalized) ? stage : null;
+  return null;
+}
+
+export function identifyItemConferenceStage(title: string): StageKey | null {
+  const normalized = normalizeStageTitle(title);
+  if (/conferencia.*produto|produto.*confer/.test(normalized)) return "separation";
+  return identifyStage(title);
 }
 
 export function calculateStageSuccess(stages: Record<StageKey, StageStatus>) {
