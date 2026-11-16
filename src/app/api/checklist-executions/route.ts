@@ -1,10 +1,11 @@
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, inArray, or } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { checklistExecutionEvents, checklistExecutions, checklistFlowEdges, checklistFlowNodes, checklistResponses, checklists } from "@/db/schema";
 import { getApiPermission } from "@/lib/api-auth";
 import { startChecklistExecutionSchema } from "@/lib/validation";
 import { selectNextEdge } from "@/lib/checklist-flow";
+import { findExecutionStartBlock } from "@/lib/checklist-execution-policy";
 import { executeFlowAutomation, mapAutomationItems, readAutomationField } from "@/lib/flow-automation";
 
 export async function POST(request: Request) {
@@ -14,11 +15,17 @@ export async function POST(request: Request) {
   if (!parsed.success) return NextResponse.json({ error: "Informe checklist, filial e venda." }, { status: 400 });
   const [checklist] = await db.select({ id: checklists.id }).from(checklists).where(and(eq(checklists.id, parsed.data.checklistId), eq(checklists.status, "published"))).limit(1);
   if (!checklist) return NextResponse.json({ error: "Checklist publicado não encontrado." }, { status: 404 });
-  const [existing] = await db.select({ id: checklistExecutions.id }).from(checklistExecutions).where(and(
+  const existing = await db.select({ id: checklistExecutions.id, status: checklistExecutions.status, outcome: checklistExecutions.outcome }).from(checklistExecutions).where(and(
     eq(checklistExecutions.checklistId, checklist.id), eq(checklistExecutions.branchId, parsed.data.branchId),
-    eq(checklistExecutions.saleNumber, parsed.data.saleNumber), inArray(checklistExecutions.status, ["pending", "in_progress"]),
-  )).limit(1);
-  if (existing) return NextResponse.json({ error: "Já existe uma execução pendente deste checklist para a venda.", executionId: existing.id }, { status: 409 });
+    eq(checklistExecutions.saleNumber, parsed.data.saleNumber),
+    or(
+      inArray(checklistExecutions.status, ["pending", "in_progress"]),
+      and(eq(checklistExecutions.status, "completed"), eq(checklistExecutions.outcome, "success")),
+    ),
+  ));
+  const blocked = findExecutionStartBlock(existing);
+  if (blocked?.reason === "successful") return NextResponse.json({ error: "Esta venda já possui uma finalização com sucesso para este checklist e não pode gerar uma nova execução.", executionId: blocked.executionId }, { status: 409 });
+  if (blocked?.reason === "active") return NextResponse.json({ error: "Já existe uma execução pendente ou em andamento deste checklist para a venda.", executionId: blocked.executionId }, { status: 409 });
   const [startNode] = await db.select().from(checklistFlowNodes).where(and(eq(checklistFlowNodes.checklistId, checklist.id), eq(checklistFlowNodes.type, "start"))).limit(1);
   let currentNodeId: string | null = null;
   let nextAutomationAt: Date | null = null;
