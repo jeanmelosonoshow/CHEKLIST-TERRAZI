@@ -3,15 +3,26 @@
 import { useState } from "react";
 import { identifyStage, stageDefinitions, stageStatuses, type StageKey, type StageProcessRow, type StageStatus } from "@/lib/stages";
 
+type ChecklistStatusFilter = "pending" | "in_progress" | "completed_success" | "completed_failure";
+type FilterOption<T extends string> = { value: T; label: string };
+
+const stageFilterOptions: FilterOption<StageKey>[] = stageDefinitions.map((stage) => ({ value: stage.key, label: stage.label }));
+const checklistStatusOptions: FilterOption<ChecklistStatusFilter>[] = [
+  { value: "pending", label: "Pendente" },
+  { value: "in_progress", label: "Em andamento" },
+  { value: "completed_success", label: "Finalizado com sucesso" },
+  { value: "completed_failure", label: "Finalizado sem sucesso" },
+];
+
 function StageStatusBadge({ status }: { status: StageStatus }) {
   const definition = stageStatuses[status];
   return <span className={`stageStatus stageStatus-${definition.tone}`}><span aria-hidden="true" className="stageStatusDot" />{definition.label}</span>;
 }
 
 export function StagesBoard({ rows, defaultPeriod }: { rows: StageProcessRow[]; defaultPeriod: { from: string; to: string } }) {
-  const [sale, setSale] = useState(""); const [customer, setCustomer] = useState(""); const [branch, setBranch] = useState(""); const [stage, setStage] = useState<StageKey | "">("");
-  const [status, setStatus] = useState<StageProcessRow["checklistStatus"] | "">(""); const [fromDate, setFromDate] = useState(defaultPeriod.from); const [toDate, setToDate] = useState(defaultPeriod.to);
-  const filtered = rows.filter((row) => { const created = dateInput(new Date(row.createdAt)); return matches(row.sale, sale) && matches(row.customerName, customer) && matches(row.branch, branch) && (!stage || identifyStage(row.currentStage || "") === stage) && (!status || row.checklistStatus === status) && (!fromDate || created >= fromDate) && (!toDate || created <= toDate); });
+  const [sale, setSale] = useState(""); const [customer, setCustomer] = useState(""); const [branch, setBranch] = useState(""); const [stages, setStages] = useState<StageKey[]>([]);
+  const [statuses, setStatuses] = useState<ChecklistStatusFilter[]>([]); const [fromDate, setFromDate] = useState(defaultPeriod.from); const [toDate, setToDate] = useState(defaultPeriod.to);
+  const filtered = rows.filter((row) => { const created = dateInput(new Date(row.createdAt)); const currentStage = identifyStage(row.currentStage || ""); return matches(row.sale, sale) && matches(row.customerName, customer) && matches(row.branch, branch) && (!stages.length || (currentStage && stages.includes(currentStage))) && matchesChecklistStatus(row, statuses) && (!fromDate || created >= fromDate) && (!toDate || created <= toDate); });
   const overallSuccess = filtered.length ? Math.round(filtered.reduce((total, row) => total + row.successPercentage, 0) / filtered.length) : 0;
   return <>
     <aside className="stagesEfficiencyCard"><span>Eficiência geral do fluxo</span><strong>{overallSuccess}%</strong><i><b style={{ width: `${overallSuccess}%` }} /></i><small>{filtered.length} venda(s) considerada(s) nos filtros</small></aside>
@@ -19,7 +30,7 @@ export function StagesBoard({ rows, defaultPeriod }: { rows: StageProcessRow[]; 
       {Object.entries(stageStatuses).map(([status, definition]) => <StageStatusBadge status={status as StageStatus} key={definition.label} />)}
     </div>
 
-    {rows.length ? <><div className="stageFilters"><label>Etapa atual<select value={stage} onChange={(event) => setStage(event.target.value as StageKey | "")}><option value="">Todas as etapas</option>{stageDefinitions.map((item) => <option key={item.key} value={item.key}>{item.label}</option>)}</select></label><label>Status do checklist<select value={status} onChange={(event) => setStatus(event.target.value as typeof status)}><option value="">Todos os status</option><option value="pending">Pendente</option><option value="in_progress">Em andamento</option><option value="completed">Finalizado</option></select></label><label>Criação inicial<input type="date" value={fromDate} onChange={(event) => setFromDate(event.target.value)} /></label><label>Criação final<input type="date" value={toDate} onChange={(event) => setToDate(event.target.value)} /></label><label>Filial<input value={branch} onChange={(event) => setBranch(event.target.value)} placeholder="Ex.: 29" /></label><label>Número da saída<input value={sale} onChange={(event) => setSale(event.target.value)} placeholder="Ex.: 5351" /></label><label>Cliente<input value={customer} onChange={(event) => setCustomer(event.target.value)} placeholder="Nome do cliente" /></label><span>{filtered.length} venda(s)</span></div><div className="tableWrap responsiveTable stagesTable">
+    {rows.length ? <><div className="stageFilters"><MultiSelectFilter label="Etapa atual" allLabel="Todas as etapas" options={stageFilterOptions} selected={stages} onChange={setStages} /><MultiSelectFilter label="Status do checklist" allLabel="Todos os status" options={checklistStatusOptions} selected={statuses} onChange={setStatuses} /><label>Criação inicial<input type="date" value={fromDate} onChange={(event) => setFromDate(event.target.value)} /></label><label>Criação final<input type="date" value={toDate} onChange={(event) => setToDate(event.target.value)} /></label><label>Filial<input value={branch} onChange={(event) => setBranch(event.target.value)} placeholder="Ex.: 29" /></label><label>Número da saída<input value={sale} onChange={(event) => setSale(event.target.value)} placeholder="Ex.: 5351" /></label><label>Cliente<input value={customer} onChange={(event) => setCustomer(event.target.value)} placeholder="Nome do cliente" /></label><span>{filtered.length} venda(s)</span></div><div className="tableWrap responsiveTable stagesTable">
       <table>
         <thead><tr><th>Filial · Venda · Cliente</th><th>Sucesso geral</th>{stageDefinitions.map((stage) => <th key={stage.key}>{stage.label}</th>)}</tr></thead>
         <tbody>{filtered.map((row) => <tr className={`stageProcessRow stageProcessRow-${row.checklistStatus}${row.checklistStatus === "completed" ? ` stageProcessRow-completed-${row.outcome || "unknown"}` : ""}`} key={row.id}>
@@ -33,6 +44,20 @@ export function StagesBoard({ rows, defaultPeriod }: { rows: StageProcessRow[]; 
       <ol className="stageTemplate">{stageDefinitions.map((stage, index) => <li key={stage.key}><span>{index + 1}</span><strong>{stage.label}</strong></li>)}</ol>
     </div>}
   </>;
+}
+
+function MultiSelectFilter<T extends string>({ label, allLabel, options, selected, onChange }: { label: string; allLabel: string; options: FilterOption<T>[]; selected: T[]; onChange: (values: T[]) => void }) {
+  const selectedLabels = options.filter((option) => selected.includes(option.value)).map((option) => option.label);
+  const summary = selectedLabels.length === 0 ? allLabel : selectedLabels.length === 1 ? selectedLabels[0] : `${selectedLabels.length} selecionados`;
+  return <div className="multiSelectField"><span>{label}</span><details className="filterMultiSelect"><summary>{summary}</summary><div className="filterMultiSelectMenu">
+    {options.map((option) => <label key={option.value}><input type="checkbox" checked={selected.includes(option.value)} onChange={() => onChange(selected.includes(option.value) ? selected.filter((value) => value !== option.value) : [...selected, option.value])} /><span>{option.label}</span></label>)}
+    {selected.length > 0 && <button type="button" onClick={() => onChange([])}>Limpar seleção</button>}
+  </div></details></div>;
+}
+
+function matchesChecklistStatus(row: StageProcessRow, selected: ChecklistStatusFilter[]) {
+  if (!selected.length) return true;
+  return selected.some((status) => status === "pending" ? row.checklistStatus === "pending" : status === "in_progress" ? row.checklistStatus === "in_progress" : status === "completed_success" ? row.checklistStatus === "completed" && row.outcome === "success" : row.checklistStatus === "completed" && row.outcome === "failure");
 }
 
 function matches(value: string, search: string) { const normalize = (text: string) => text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim(); return normalize(search).split(/\s+/).filter(Boolean).every((token) => normalize(value).includes(token)); }

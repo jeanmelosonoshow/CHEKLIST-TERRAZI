@@ -128,6 +128,17 @@ td small { margin-top: 4px; color: var(--muted); }
 .stageFilters label { color: var(--muted); font-size: .7rem; font-weight: 750; }
 .stageFilters input, .stageFilters select { width: 100%; margin-top: 5px; }
 .stageFilters > span { padding-bottom: 13px; color: var(--muted); font-size: .72rem; white-space: nowrap; }
+.multiSelectField { position: relative; display: grid; gap: 5px; color: var(--muted); font-size: .7rem; font-weight: 750; }
+.filterMultiSelect { position: relative; min-width: 0; color: var(--ink); font-size: .78rem; font-weight: 500; }
+.filterMultiSelect summary { display: flex; min-height: 43px; padding: 11px 34px 11px 13px; align-items: center; overflow: hidden; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); cursor: pointer; list-style: none; text-overflow: ellipsis; white-space: nowrap; }
+.filterMultiSelect summary::-webkit-details-marker { display: none; }
+.filterMultiSelect summary::after { position: absolute; right: 13px; color: var(--muted); content: "⌄"; font-size: 1rem; }
+.filterMultiSelect[open] summary { border-color: var(--green); box-shadow: 0 0 0 3px rgba(18, 107, 80, .1); }
+.filterMultiSelectMenu { position: absolute; z-index: 20; top: calc(100% + 6px); left: 0; display: grid; width: max(100%, 230px); padding: 8px; gap: 2px; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); box-shadow: 0 14px 34px rgba(19, 39, 30, .16); }
+.filterMultiSelectMenu label { display: flex; min-height: 36px; padding: 7px 8px; align-items: center; gap: 9px; border-radius: 7px; color: var(--ink); cursor: pointer; font-size: .75rem; }
+.filterMultiSelectMenu label:hover { background: #f0f6f3; }
+.filterMultiSelectMenu input { width: 16px; height: 16px; margin: 0; accent-color: var(--green); }
+.filterMultiSelectMenu button { padding: 8px; border: 0; color: var(--green); background: transparent; cursor: pointer; font-size: .72rem; font-weight: 800; text-align: left; }
 .currentStageText { color: var(--green) !important; font-weight: 750; }
 .stageStatus { display: inline-flex; min-height: 30px; padding: 6px 9px; align-items: center; gap: 7px; border: 1px solid transparent; border-radius: 999px; font-size: .64rem; font-weight: 850; letter-spacing: .035em; line-height: 1.25; text-transform: uppercase; white-space: nowrap; }
 .stageStatusDot { width: 7px; height: 7px; flex: 0 0 7px; border-radius: 50%; background: currentColor; }
